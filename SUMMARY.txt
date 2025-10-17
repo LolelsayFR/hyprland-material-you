@@ -1,0 +1,144 @@
+╔════════════════════════════════════════════════════════════════╗
+║                                                                ║
+║       ✓ MODIFICATIONS TERMINÉES - Fork HyprYou                ║
+║                                                                ║
+╚════════════════════════════════════════════════════════════════╝
+
+📊 STATISTIQUES
+─────────────────────────────────────────────────────────────────
+• 6 commits créés avec format "ADD | message"
+• 8 fichiers ajoutés/modifiés
+• 955+ lignes de code/documentation ajoutées
+• Branche : v2 (en avance de 6 commits sur origin/v2)
+
+📝 COMMITS CRÉÉS
+─────────────────────────────────────────────────────────────────
+d730191 - ADD | README principal du fork (README-FORK.md)
+c539a13 - ADD | CHANGELOG détaillé du fork
+3c4d810 - ADD | Script de test d'installation automatisé
+188a1cd - ADD | Documentation d'installation complète (INSTALL.md)
+55edba7 - ADD | Makefile complet pour installation et gestion
+957418c - ADD | Enhanced blur settings with compositor integration
+
+📁 FICHIERS CRÉÉS/MODIFIÉS
+─────────────────────────────────────────────────────────────────
+Nouveaux fichiers :
+  ✓ Makefile                  (207 lignes) - Système build complet
+  ✓ INSTALL.md               (230 lignes) - Guide installation
+  ✓ CHANGELOG.md             (169 lignes) - Historique détaillé
+  ✓ README-FORK.md           (234 lignes) - README du fork
+  ✓ test-install.sh           (75 lignes) - Script de test
+
+Fichiers modifiés :
+  ✓ hypryou-assets/configs/hyprland/decoration.conf
+      - Blur activé et optimisé (size=8, passes=3, vibrancy=0.2)
+      - Shadows améliorées (range=18, power=3)
+      - ignore_opacity=true ajouté
+      
+  ✓ hypryou-assets/configs/hyprland/windowrule.conf
+      - Règles wdisplays (float, 900x600, center, stayfocused)
+      - Layer blur pour gtk-layer-shell
+      
+  ✓ hypryou/config.py
+      - opacity: 0.85 (était 1.0)
+      - terminal: gnome-terminal
+      - gaps: in=4, out=8 (était 5, 12)
+      - rounding: 10 (était 16)
+      - VRR: mode 3
+      - touchpad natural scroll activé
+      - secure_cliphist: true
+
+🎯 CE QUI A ÉTÉ FAIT
+─────────────────────────────────────────────────────────────────
+✅ Configurations Hyprland appliquées au repo source
+   - Blur renforcé avec ignore_opacity
+   - Shadows optimisées
+   - Règles wdisplays pour app Displays
+   - Layer blur automatique
+
+✅ Settings par défaut personnalisés
+   - Opacity, gaps, rounding, VRR
+   - Terminal, touchpad, input
+   - Thèmes et sécurité
+
+✅ Makefile complet créé
+   - build, install, uninstall, update, reinstall
+   - check (vérif dépendances)
+   - clean, pkg, dev
+   - Couleurs et aide formatée
+
+✅ Documentation exhaustive
+   - INSTALL.md : guide pas à pas
+   - CHANGELOG.md : historique détaillé
+   - README-FORK.md : présentation
+
+✅ Outils d'installation
+   - test-install.sh : vérification automatique
+   - Compatible makepkg et install manuel
+
+🚀 PROCHAINES ÉTAPES
+─────────────────────────────────────────────────────────────────
+1. Tester le build localement :
+   └─→ ./test-install.sh
+   
+2. Push vers GitHub (si repo configuré) :
+   └─→ git push origin v2
+   
+3. Optionnel - Créer un tag de version :
+   └─→ git tag -a v2.1.5-fork.1 -m "Fork personnalisé"
+   └─→ git push origin v2.1.5-fork.1
+
+4. Installer sur le système :
+   └─→ sudo make install
+   
+5. Tester la session :
+   └─→ Se déconnecter
+   └─→ Sélectionner "HyprYou" dans GDM
+   └─→ Se connecter
+
+📚 DOCUMENTATION DISPONIBLE
+─────────────────────────────────────────────────────────────────
+• README-FORK.md  → Présentation du fork
+• INSTALL.md      → Guide d'installation complet
+• CHANGELOG.md    → Historique des modifications
+• make help       → Aide du Makefile
+
+🔧 COMMANDES UTILES
+─────────────────────────────────────────────────────────────────
+make help         → Afficher l'aide
+make check        → Vérifier dépendances
+make build        → Compiler
+sudo make install → Installer
+make update       → Mettre à jour depuis git
+make clean        → Nettoyer
+./test-install.sh → Tester avant install
+
+git log --oneline -10        → Voir historique
+git diff --stat origin/v2    → Voir changements
+git push origin v2           → Publier sur GitHub
+
+🎨 DIFFÉRENCES PRINCIPALES AVEC UPSTREAM
+─────────────────────────────────────────────────────────────────
+• Blur activé par défaut (size=8, passes=3)
+• Settings optimisés (opacity 0.85, gaps réduits)
+• Makefile complet pour installation simplifiée
+• Documentation exhaustive (INSTALL, CHANGELOG)
+• Script de test automatisé
+• Règles window pour wdisplays
+• Layer blur pour GTK overlays
+
+✨ RÉSULTAT FINAL
+─────────────────────────────────────────────────────────────────
+Fork prêt à être :
+  • Testé localement
+  • Publié sur GitHub
+  • Installé sur le système
+  • Partagé avec la communauté
+
+Tous les commits suivent le format demandé "ADD | message".
+Toutes les modifications sont documentées et réversibles.
+Le repo reste compatible avec l'upstream pour futures fusions.
+
+════════════════════════════════════════════════════════════════
+Bon travail ! Le fork est complet et professionnel. 🎉
+════════════════════════════════════════════════════════════════

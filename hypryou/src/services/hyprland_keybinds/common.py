@@ -116,14 +116,37 @@ def get_app_name_from_command(command: str) -> str:
 
 def sync_keybind_with_hyprland(keybind: KeyBind | KeyBindHint) -> KeyBind | KeyBindHint:
     """
-    Synchronise un KeyBind avec la configuration réelle de Hyprland.
-    Si le bind a changé dans Hyprland, met à jour l'objet KeyBind.
+    Synchronise un KeyBind avec la configuration réelle de Hyprland et les overrides utilisateur.
+    Prend en compte les keybinds_overrides de settings.json.
     Met également à jour la description si l'application a changé.
     Note: KeyBindHint n'a pas d'action donc on le retourne tel quel.
     """
     # KeyBindHint n'a pas d'attribut id ni action, on le skip
     if isinstance(keybind, KeyBindHint):
         return keybind
+    
+    # Vérifier d'abord les overrides utilisateur
+    try:
+        from config import Settings
+        overrides_raw = Settings().get("keybinds_overrides", [])
+        
+        # Chercher un override pour ce keybind
+        for override in overrides_raw:
+            if override.get("id") == keybind.id:
+                # Override trouvé - appliquer le nouveau bind
+                new_bind = override.get("bind")
+                if new_bind and isinstance(new_bind, list):
+                    # Créer une copie du keybind avec le nouveau bind
+                    import copy
+                    synced = copy.copy(keybind)
+                    synced.bind = tuple(new_bind)
+                    return synced
+                elif new_bind is None:
+                    # bind=None signifie désactivé, on retourne tel quel
+                    return keybind
+    except Exception as e:
+        # En cas d'erreur, continuer avec la sync normale
+        pass
     
     hypr_binds = get_hyprland_keybinds()
     bind_id = keybind.id

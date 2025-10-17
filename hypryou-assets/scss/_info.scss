@@ -32,6 +32,33 @@ window.info {
             color: $onSurfaceVariant;
         }
 
+        .fork-info {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background-color: color.mix($primary, $surface, 10%);
+            border-radius: max(calc($hyprlandRounding - 0.5rem), 0.25rem);
+            border: 0.0625rem solid color.mix($primary, transparent, 30%);
+
+            .fork-label {
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: $primary;
+                margin-bottom: 0.25rem;
+            }
+            .fork-description {
+                font-size: 0.9rem;
+                font-weight: 400;
+                color: $onSurfaceVariant;
+                margin-bottom: 0.25rem;
+            }
+            .fork-author {
+                font-size: 0.85rem;
+                font-weight: 500;
+                color: $onSurfaceVariant;
+                font-style: italic;
+            }
+        }
+
         .buttons-box {
             margin: 0.5rem;
             button {

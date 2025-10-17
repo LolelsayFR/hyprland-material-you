@@ -2,7 +2,7 @@ from repository import layer_shell, gtk
 import weakref
 from utils.logger import logger
 from src.services.hyprland_keybinds import key_binds
-from src.services.hyprland_keybinds.common import Category
+from src.services.hyprland_keybinds.common import Category, sync_keybind_with_hyprland
 from src.services.hyprland_keybinds.common import KeyBind
 from src.services.hyprland_keybinds.common import KeyBindHint
 import src.widget as widget
@@ -114,7 +114,9 @@ class KeybindsBox(gtk.FlowBox):
         for keybind in key_binds:
             if not keybind.description or not keybind.category:
                 continue
-            _widget = KeybindWidget(keybind)
+            # Synchroniser avec les keybinds réels de Hyprland
+            synced_keybind = sync_keybind_with_hyprland(keybind)
+            _widget = KeybindWidget(synced_keybind)
             self.boxes[keybind.category].append(_widget)
 
     def destroy(self) -> None:

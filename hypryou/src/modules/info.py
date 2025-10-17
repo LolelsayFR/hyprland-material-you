@@ -50,6 +50,36 @@ class InfoPage(gtk.Box):
         self.logo_box.append(self.name)
         self.logo_box.append(self.version)
 
+        # Fork info section
+        self.fork_info = gtk.Box(
+            css_classes=("fork-info",),
+            orientation=gtk.Orientation.VERTICAL,
+            hexpand=True,
+            spacing=6
+        )
+        self.fork_label = gtk.Label(
+            css_classes=("fork-label",),
+            label="🤖 AI-Powered Fork",
+            halign=gtk.Align.CENTER
+        )
+        self.fork_desc = gtk.Label(
+            css_classes=("fork-description",),
+            label="Fork personnalisé avec optimisations et configurations custom",
+            halign=gtk.Align.CENTER,
+            wrap=True,
+            wrap_mode=pango.WrapMode.WORD
+        )
+        self.fork_author = gtk.Label(
+            css_classes=("fork-author",),
+            label="by LolelsayFR • Entièrement géré par IA",
+            halign=gtk.Align.CENTER
+        )
+        self.fork_info.append(self.fork_label)
+        self.fork_info.append(self.fork_desc)
+        self.fork_info.append(self.fork_author)
+        
+        self.logo_box.append(self.fork_info)
+
         self.buttons_box = gtk.Box(
             css_classes=("buttons-box",),
             homogeneous=True,

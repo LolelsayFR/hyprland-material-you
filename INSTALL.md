@@ -80,12 +80,32 @@ sudo cp build/hypryouctl /usr/bin/
 | `make build` | Compile binaires + Cython |
 | `make install` | Installe sur le système (sudo) |
 | `make uninstall` | Désinstalle (sudo) |
+| `make reload` | Recompile et recharge à chaud (session active) |
 | `make update` | Git pull + rebuild + reinstall |
 | `make reinstall` | Clean + build + install |
 | `make clean` | Nettoie fichiers compilés |
 | `make check` | Vérifie dépendances |
 | `make pkg` | Crée package Arch |
 | `make dev` | Build sans installer |
+
+### 🔥 Développement à chaud
+
+La commande `make reload` permet de **mettre à jour HyprYou sans redémarrer la session** :
+
+```bash
+# Modifier le code (Python, configs, assets)
+nano hypryou/src/modules/bar.py
+
+# Recompiler et recharger instantanément
+make reload
+
+# HyprYou se recharge automatiquement !
+```
+
+**Cas d'usage :**
+- Modifier l'UI ou les modules Python
+- Tester rapidement des changements de config
+- Développement itératif sans logout/login
 
 ---
 

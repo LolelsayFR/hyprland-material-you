@@ -29,7 +29,7 @@ YELLOW = \033[0;33m
 BLUE = \033[0;34m
 NC = \033[0m # No Color
 
-.PHONY: all build build-binaries build-cython clean install uninstall update reinstall check help
+.PHONY: all build build-binaries build-cython clean install uninstall update reinstall reload check help
 
 # Cible par défaut
 all: build
@@ -44,6 +44,7 @@ help:
 	@echo "  $(GREEN)make build$(NC)         - Compile les binaires et extensions Cython"
 	@echo "  $(GREEN)make install$(NC)       - Installe HyprYou sur le système"
 	@echo "  $(GREEN)make uninstall$(NC)     - Désinstalle HyprYou"
+	@echo "  $(GREEN)make reload$(NC)        - Recompile et recharge HyprYou à chaud (session active)"
 	@echo "  $(GREEN)make update$(NC)        - Met à jour (git pull + rebuild + reinstall)"
 	@echo "  $(GREEN)make reinstall$(NC)     - Réinstalle (clean + build + install)"
 	@echo "  $(GREEN)make clean$(NC)         - Nettoie les fichiers compilés"
@@ -170,6 +171,27 @@ reinstall:
 		sudo $(MAKE) install; \
 	fi
 	@echo "$(GREEN)✓ Réinstallation terminée!$(NC)"
+
+## reload: Recompile et recharge HyprYou à chaud (pour session active)
+reload: build
+	@echo "$(BLUE)→ Rechargement à chaud de HyprYou...$(NC)"
+	@echo "$(YELLOW)  [Copie des fichiers vers système]$(NC)"
+	@if [ "$$(id -u)" -eq 0 ]; then \
+		cp -a $(HYPRYOUDIR)/. "$(DESTDIR)$(LIBDIR)/"; \
+		cp -a $(ASSETSDIR)/. "$(DESTDIR)$(SHAREDIR)/"; \
+		install -Dm755 $(BUILDDIR)/hypryouctl "$(DESTDIR)$(BINDIR)/hypryouctl"; \
+	else \
+		sudo cp -a $(HYPRYOUDIR)/. "$(DESTDIR)$(LIBDIR)/"; \
+		sudo cp -a $(ASSETSDIR)/. "$(DESTDIR)$(SHAREDIR)/"; \
+		sudo install -Dm755 $(BUILDDIR)/hypryouctl "$(DESTDIR)$(BINDIR)/hypryouctl"; \
+	fi
+	@echo "$(YELLOW)  [Rechargement de HyprYou]$(NC)"
+	@if command -v hypryouctl >/dev/null 2>&1; then \
+		hypryouctl reload && echo "$(GREEN)✓ HyprYou rechargé avec succès!$(NC)" || echo "$(RED)✗ Échec du reload (session HyprYou non active?)$(NC)"; \
+	else \
+		echo "$(RED)✗ hypryouctl non trouvé (HyprYou non installé?)$(NC)"; \
+	fi
+	@echo "$(GREEN)✓ Mise à jour à chaud terminée!$(NC)"
 
 ## check: Vérifie les dépendances nécessaires
 check:

@@ -1,5 +1,7 @@
 # CHANGELOG - Fork LolelsayFR
 
+> **🤖 Note :** Ce fork est entièrement géré par IA (GitHub Copilot) - une expérience pour tester les capacités de l'IA à modifier un projet complexe sans rien casser !
+
 Tous les changements notables apportés à ce fork seront documentés ici.
 
 Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
@@ -10,7 +12,8 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 
 ### Ajouté
 - **Makefile complet** pour installation et gestion système
-  - Commandes: `build`, `install`, `uninstall`, `update`, `reinstall`, `clean`, `check`, `pkg`, `dev`
+  - Commandes: `build`, `install`, `uninstall`, `update`, `reinstall`, `reload`, `clean`, `check`, `pkg`, `dev`
+  - **`make reload`** : Recompile et recharge HyprYou à chaud (session active)
   - Support compilation Cython + binaires C (hypryouctl, hypryou-start, crash-dialog)
   - Vérification automatique des dépendances avec `make check`
   - Mode développement avec `make dev`

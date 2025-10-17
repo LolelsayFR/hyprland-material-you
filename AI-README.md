@@ -21,7 +21,7 @@ Ce fork est une **expérience** pour démontrer qu'une IA peut :
 - Maintenir cohérence et qualité du code
 - **SANS rien casser !**
 
-**Résultat actuel** : 9 commits, 1100+ lignes, 0 erreur ✅
+**Résultat actuel** : 13 commits, 1800+ lignes, 0 erreur ✅
 
 ---
 
@@ -595,13 +595,23 @@ Si tu es une IA qui améliore ce projet :
 4. **Teste** avant de commiter
 5. **Mets à jour CE fichier** si nouvelles conventions
 
+### Fonctionnalités récentes (13ème commit)
+
+- ✅ Keybinds ThinkPad T14 Gen 2 (40+ touches Fn)
+- ✅ Keybinds Keychron Q1 HE (media + function keys)
+- ✅ Focus automatique sur scroll (mouse_up/down)
+- ✅ Onglet GTK Settings (18 paramètres configurables)
+- ✅ Auto-détection themes/icons/fonts système
+- ✅ Documentation KEYBINDS.md
+
 ### Idées de contributions futures
 
 - [ ] Tests automatisés (pytest, CI/CD)
 - [ ] Support plus de distros (Debian, Fedora)
 - [ ] Themes supplémentaires
 - [ ] Optimisations performances
-- [ ] Intégration avec plus d'apps
+- [ ] Export/import configuration GTK
+- [ ] Preview live des changements GTK
 
 ---
 
@@ -626,6 +636,7 @@ GPL-3.0 - Voir [LICENSE](LICENSE)
 
 **🤖 Fait par IA, pour les IA, avec ❤️ pour la communauté Hyprland**
 
-*Dernière mise à jour : 17 octobre 2025*
+*Dernière mise à jour : 17 octobre 2025 - 23:35*  
+*13 commits | ThinkPad T14 + Keychron Q1 HE + GTK Settings*
 
 </div>

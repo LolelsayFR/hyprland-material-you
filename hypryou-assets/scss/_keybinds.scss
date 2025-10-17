@@ -37,13 +37,21 @@ window.keybinds {
     .keybind {
         margin-left: 0.25rem;
         margin-right: 0.25rem;
+        min-height: 2rem;
+        
+        .function-icon {
+            font-size: 1.25rem;
+            font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+            color: $primary;
+            margin-right: 0.5rem;
+        }
     }
 
     .bind-key {
         background-color: $surfaceContainerLowest;
         color: $onSurface;
         border-radius: 0.25rem;
-        font-size: 1rem;
+        font-size: 0.9rem;
         font-weight: 400;
         border: 0.0625rem solid $outlineVariant;
         padding-left: 0.25rem;
@@ -53,7 +61,7 @@ window.keybinds {
 
     .plus {
         color: $onSurfaceVariant;
-        font-size: 1rem;
+        font-size: 0.9rem;
         font-weight: 400;
         margin-left: 0.25rem;
         margin-right: 0.25rem;
@@ -61,8 +69,9 @@ window.keybinds {
 
     .description {
         color: $onSurface;
-        font-size: 1rem;
+        font-size: 0.95rem;
         font-weight: 400;
+        opacity: 0.9;
     }
 
     separator {

@@ -54,6 +54,7 @@ def get_pages() -> dict[str, Page]:
     from src.modules.settings.hyprland import HyprlandPage
     from src.modules.settings.configs import ConfigsPage
     from src.modules.settings.lockscreen import LockscreenPage
+    from src.modules.settings.gtk import GTKPage
 
     pages = {
         "network": Page(
@@ -73,6 +74,12 @@ def get_pages() -> dict[str, Page]:
             icon="palette",
             icon_fill=True,
             widget=AppearancePage
+        ),
+        "gtk": Page(
+            title="GTK",
+            icon="new_window",
+            icon_fill=False,
+            widget=GTKPage
         ),
         "wallpaper": Page(
             title="Wallpaper",
@@ -143,6 +150,7 @@ sidebar = (
     "bluetooth",
     "separator",
     "appearance",
+    "gtk",
     "wallpaper",
     "separator",
     "input",

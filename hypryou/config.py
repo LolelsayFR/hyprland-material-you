@@ -168,6 +168,24 @@ default_settings: dict[str, t.Any] = {
     "hyprland.snap.border_overlap": False,
     "hyprland.snap.respect_gaps": False,
 
+    # GTK settings
+    "gtk.theme": "Adwaita",
+    "gtk.prefer_dark_theme": True,
+    "gtk.icon_theme": "Adwaita",
+    "gtk.icon_fallback": True,
+    "gtk.cursor_theme": "Adwaita",
+    "gtk.cursor_size": 24,
+    "gtk.font": "Google Sans",
+    "gtk.font_size": 11,
+    "gtk.monospace_font": "JetBrains Mono",
+    "gtk.enable_animations": True,
+    "gtk.overlay_scrollbars": True,
+    "gtk.double_click_time": 400,
+    "gtk.show_hidden_files": False,
+    "gtk.enable_csd": True,
+    "gtk.enable_mnemonics": True,
+    "gtk.dpi_scale": 1.0,
+
     # Hyprsunset
     "hyprsunset.temperature": 3500,
     "hyprsunset.value": False,

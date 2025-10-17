@@ -114,12 +114,17 @@ def get_app_name_from_command(command: str) -> str:
     return None
 
 
-def sync_keybind_with_hyprland(keybind: KeyBind) -> KeyBind:
+def sync_keybind_with_hyprland(keybind: KeyBind | KeyBindHint) -> KeyBind | KeyBindHint:
     """
     Synchronise un KeyBind avec la configuration réelle de Hyprland.
     Si le bind a changé dans Hyprland, met à jour l'objet KeyBind.
     Met également à jour la description si l'application a changé.
+    Note: KeyBindHint n'a pas d'action donc on le retourne tel quel.
     """
+    # KeyBindHint n'a pas d'attribut id ni action, on le skip
+    if isinstance(keybind, KeyBindHint):
+        return keybind
+    
     hypr_binds = get_hyprland_keybinds()
     bind_id = keybind.id
     

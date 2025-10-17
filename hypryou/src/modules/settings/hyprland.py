@@ -84,6 +84,24 @@ class HyprlandPage(gtk.ScrolledWindow):
                 "hyprland.snap.respect_gaps"
             ),
 
+            Category("Animations"),
+            SettingsBoolRow(
+                "Enable Animations",
+                "Master switch for all animations",
+                "hyprland.animations.enabled"
+            ),
+            SettingsTextRow(
+                "Animation Speed",
+                "Global animation speed multiplier (1.0 = normal)",
+                "hyprland.animations.speed",
+                max_width_chars=4
+            ),
+            SettingsBoolRow(
+                "First Launch Animation",
+                "Enable the first window animation on launch",
+                "hyprland.animations.first_launch_animation"
+            ),
+
             Category("Misc"),
             SettingsDropdownRow(
                 "VRR",
@@ -100,6 +118,51 @@ class HyprlandPage(gtk.ScrolledWindow):
                 "Middle click paste",
                 "Paste from clipboard on middle click",
                 "hyprland.misc.middle_click_paste"
+            ),
+            SettingsBoolRow(
+                "Focus on activate",
+                "Focus windows when they request activation",
+                "hyprland.misc.focus_on_activate"
+            ),
+            SettingsBoolRow(
+                "Animate manual resizes",
+                "Animate manual window resizing",
+                "hyprland.misc.animate_manual_resizes"
+            ),
+            SettingsBoolRow(
+                "Animate mouse window dragging",
+                "Animate window dragging with mouse",
+                "hyprland.misc.animate_mouse_windowdragging"
+            ),
+            SettingsBoolRow(
+                "Disable Hyprland logo",
+                "Hide Hyprland logo on background",
+                "hyprland.misc.disable_hyprland_logo"
+            ),
+            SettingsTextRow(
+                "Background color",
+                "Background color (hex: 0xRRGGBB)",
+                "hyprland.misc.background_color",
+                max_width_chars=10
+            ),
+
+            Category("Performance"),
+            SettingsBoolRow(
+                "No direct scanout",
+                "Disable direct scanout (may help with some issues)",
+                "hyprland.misc.no_direct_scanout"
+            ),
+            SettingsBoolRow(
+                "VFR (Variable Frame Rate)",
+                "Lower refresh rate when idle to save power",
+                "hyprland.misc.vfr"
+            ),
+            SettingsTextRow(
+                "Damage tracking",
+                "Damage tracking mode (0-2, 2 = best performance)",
+                "hyprland.general.damage_tracking",
+                max_width_chars=2,
+                **int_kwargs
             ),
 
             Category("Cursor"),

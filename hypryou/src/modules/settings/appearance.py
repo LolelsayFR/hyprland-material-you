@@ -65,6 +65,27 @@ class AppearancePage(gtk.ScrolledWindow):
                 "blur.xray"
             ),
             SettingsTextRow(
+                "Blur Size",
+                "Blur radius in pixels (higher = more blur)",
+                "hyprland.decoration.blur.size",
+                max_width_chars=3,
+                **int_kwargs
+            ),
+            SettingsTextRow(
+                "Blur Passes",
+                "Number of blur passes (more = smoother but slower)",
+                "hyprland.decoration.blur.passes",
+                max_width_chars=2,
+                **int_kwargs
+            ),
+            SettingsTextRow(
+                "Blur Vibrancy",
+                "Vibrancy strength (0.0 - 1.0)",
+                "hyprland.decoration.blur.vibrancy",
+                max_width_chars=4,
+                **float_kwargs
+            ),
+            SettingsTextRow(
                 "UI Opacity",
                 "Changes opacity of UI (minimum: 85%)",
                 "opacity",
@@ -74,6 +95,8 @@ class AppearancePage(gtk.ScrolledWindow):
                 transform2_fn=lambda v: min(max(float(v) / 100, 0.85), 1.0),
                 test_text=lambda v: v.isdigit()
             ),
+            
+            Category("Decoration"),
             SettingsTextRow(
                 "Rounding",
                 "Rounded corners' radius (in layout px)",
@@ -86,6 +109,37 @@ class AppearancePage(gtk.ScrolledWindow):
                 "Adjusts the curve used for rounding corners",
                 "hyprland.decoration.rounding_power",
                 max_width_chars=3,
+                **float_kwargs
+            ),
+            SettingsBoolRow(
+                "Drop Shadow",
+                "Enable drop shadows on windows",
+                "hyprland.decoration.shadow.enabled"
+            ),
+            SettingsTextRow(
+                "Shadow Range",
+                "Shadow size in pixels",
+                "hyprland.decoration.shadow.range",
+                max_width_chars=3,
+                **int_kwargs
+            ),
+            SettingsTextRow(
+                "Shadow Render Power",
+                "Shadow smoothness (1-4)",
+                "hyprland.decoration.shadow.render_power",
+                max_width_chars=2,
+                **int_kwargs
+            ),
+            SettingsBoolRow(
+                "Dim Inactive",
+                "Dim inactive windows",
+                "hyprland.decoration.dim_inactive"
+            ),
+            SettingsTextRow(
+                "Dim Strength",
+                "How much to dim (0.0 - 1.0)",
+                "hyprland.decoration.dim_strength",
+                max_width_chars=4,
                 **float_kwargs
             ),
 

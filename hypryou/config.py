@@ -133,10 +133,33 @@ default_settings: dict[str, t.Any] = {
     "hyprland.layout": "dwindle",
     "hyprland.decoration.rounding": 10,
     "hyprland.decoration.rounding_power": 2.0,
+    "hyprland.decoration.blur.size": 8,
+    "hyprland.decoration.blur.passes": 3,
+    "hyprland.decoration.blur.vibrancy": 0.2,
+    "hyprland.decoration.shadow.enabled": True,
+    "hyprland.decoration.shadow.range": 18,
+    "hyprland.decoration.shadow.render_power": 3,
+    "hyprland.decoration.dim_inactive": False,
+    "hyprland.decoration.dim_strength": 0.05,
+
+    # Hyprland animations
+    "hyprland.animations.enabled": True,
+    "hyprland.animations.speed": 1.0,
+    "hyprland.animations.first_launch_animation": True,
+
+    # Hyprland general
+    "hyprland.general.damage_tracking": 2,
 
     # Hyprland misc
     "hyprland.misc.vrr": 3,
     "hyprland.misc.middle_click_paste": True,
+    "hyprland.misc.focus_on_activate": True,
+    "hyprland.misc.animate_manual_resizes": False,
+    "hyprland.misc.animate_mouse_windowdragging": False,
+    "hyprland.misc.disable_hyprland_logo": True,
+    "hyprland.misc.background_color": "0x111111",
+    "hyprland.misc.no_direct_scanout": False,
+    "hyprland.misc.vfr": True,
 
     # Hyprland snap
     "hyprland.snap.enabled": True,

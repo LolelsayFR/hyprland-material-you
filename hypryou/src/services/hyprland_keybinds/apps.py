@@ -2,7 +2,7 @@ from src.services.hyprland_keybinds.common import KeyBind, main_mod, Category
 
 key_binds = (
     KeyBind(
-        (main_mod, "RETURN"),
+        (main_mod, "`"),
         ("exec", "hypryouctl apps terminal"),
         "Terminal",
         Category.APPS

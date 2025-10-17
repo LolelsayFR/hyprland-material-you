@@ -6,9 +6,53 @@
 window.keybinds {
     @include nLayerBackground($background, 1);
     min-width: 70rem;
+    min-height: 40rem;
     border-radius: $hyprlandRounding;
     border: 0.0625rem solid $layerBorderColor;
     padding: 0.5rem;
+    
+    .keybinds-notebook {
+        notebook > header {
+            background-color: $surfaceContainer;
+            border-radius: max(calc($hyprlandRounding - 0.5rem), 0.25rem);
+            padding: 0.25rem;
+            
+            tabs {
+                tab {
+                    background-color: transparent;
+                    color: $onSurfaceVariant;
+                    border-radius: 0.25rem;
+                    padding: 0.5rem 1rem;
+                    margin: 0.125rem;
+                    transition: all 200ms ease;
+                    
+                    &:hover {
+                        background-color: $surfaceContainerHighest;
+                        color: $onSurface;
+                    }
+                    
+                    &:checked {
+                        background-color: $primary;
+                        color: $onPrimary;
+                        font-weight: 500;
+                    }
+                    
+                    .tab-label {
+                        font-size: 0.95rem;
+                    }
+                }
+            }
+        }
+        
+        stack {
+            background-color: transparent;
+            padding: 0.5rem;
+        }
+    }
+    
+    .keybinds-scrolled {
+        min-height: 35rem;
+    }
 
     .category-box {
         @include nLayerBackground($surfaceContainer, 1);

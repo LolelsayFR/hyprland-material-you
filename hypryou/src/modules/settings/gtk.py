@@ -1,5 +1,5 @@
 from src.modules.settings.base import SettingsBoolRow, SettingsTextRow, SettingsDropdownRow
-from src.modules.settings.base import Category
+from src.modules.settings.base import Category, DropdownItem
 from src.modules.settings.base import int_kwargs, float_kwargs
 from repository import gtk
 import subprocess
@@ -8,54 +8,60 @@ import os
 
 def get_gtk_themes():
     """Get list of installed GTK themes"""
-    themes = []
+    themes = set()
     theme_dirs = [
         os.path.expanduser("~/.themes"),
         os.path.expanduser("~/.local/share/themes"),
         "/usr/share/themes"
     ]
-    for theme_dir in theme_dirs:
-        if os.path.exists(theme_dir):
-            for theme in os.listdir(theme_dir):
-                if os.path.isdir(os.path.join(theme_dir, theme)):
-                    if theme not in themes:
-                        themes.append(theme)
-    return sorted(themes) if themes else ["Adwaita", "Adwaita-dark"]
+    try:
+        for theme_dir in theme_dirs:
+            if os.path.exists(theme_dir):
+                for theme in os.listdir(theme_dir)[:50]:  # Limiter à 50
+                    if os.path.isdir(os.path.join(theme_dir, theme)) and not theme.startswith('.'):
+                        themes.add(theme)
+        return sorted(themes) if themes else ["Adwaita", "Adwaita-dark"]
+    except Exception:
+        return ["Adwaita", "Adwaita-dark"]
 
 
 def get_icon_themes():
     """Get list of installed icon themes"""
-    icons = []
+    icons = set()
     icon_dirs = [
         os.path.expanduser("~/.icons"),
         os.path.expanduser("~/.local/share/icons"),
         "/usr/share/icons"
     ]
-    for icon_dir in icon_dirs:
-        if os.path.exists(icon_dir):
-            for icon in os.listdir(icon_dir):
-                if os.path.isdir(os.path.join(icon_dir, icon)):
-                    if icon not in icons and not icon.startswith('.'):
-                        icons.append(icon)
-    return sorted(icons) if icons else ["Adwaita", "breeze", "hicolor"]
+    try:
+        for icon_dir in icon_dirs:
+            if os.path.exists(icon_dir):
+                for icon in os.listdir(icon_dir)[:50]:  # Limiter à 50
+                    if os.path.isdir(os.path.join(icon_dir, icon)) and not icon.startswith('.'):
+                        icons.add(icon)
+        return sorted(icons) if icons else ["Adwaita", "breeze", "hicolor"]
+    except Exception:
+        return ["Adwaita", "breeze", "hicolor"]
 
 
 def get_cursor_themes():
     """Get list of installed cursor themes"""
-    cursors = []
+    cursors = set()
     cursor_dirs = [
         os.path.expanduser("~/.icons"),
         os.path.expanduser("~/.local/share/icons"),
         "/usr/share/icons"
     ]
-    for cursor_dir in cursor_dirs:
-        if os.path.exists(cursor_dir):
-            for cursor in os.listdir(cursor_dir):
-                cursor_path = os.path.join(cursor_dir, cursor, "cursors")
-                if os.path.exists(cursor_path):
-                    if cursor not in cursors and not cursor.startswith('.'):
-                        cursors.append(cursor)
-    return sorted(cursors) if cursors else ["Adwaita", "breeze_cursors"]
+    try:
+        for cursor_dir in cursor_dirs:
+            if os.path.exists(cursor_dir):
+                for cursor in os.listdir(cursor_dir)[:50]:  # Limiter à 50
+                    cursor_path = os.path.join(cursor_dir, cursor, "cursors")
+                    if os.path.exists(cursor_path) and not cursor.startswith('.'):
+                        cursors.add(cursor)
+        return sorted(cursors) if cursors else ["Adwaita", "breeze_cursors"]
+    except Exception:
+        return ["Adwaita", "breeze_cursors"]
 
 
 def get_fonts():
@@ -64,15 +70,18 @@ def get_fonts():
         result = subprocess.run(
             ["fc-list", ":family", "style=Regular"],
             capture_output=True,
-            text=True
+            text=True,
+            timeout=2  # Timeout de 2 secondes
         )
         fonts = []
-        for line in result.stdout.split('\n'):
+        seen = set()
+        for line in result.stdout.split('\n')[:100]:  # Limiter à 100 premiers
             if line.strip() and ':' in line:
                 font_name = line.split(':')[0].strip()
-                if font_name not in fonts:
+                if font_name not in seen:
+                    seen.add(font_name)
                     fonts.append(font_name)
-        return sorted(fonts) if fonts else ["Sans", "Serif", "Monospace"]
+        return sorted(fonts)[:50] if fonts else ["Sans", "Serif", "Monospace", "Google Sans", "JetBrains Mono"]
     except Exception:
         return ["Sans", "Serif", "Monospace", "Google Sans", "JetBrains Mono"]
 
@@ -91,13 +100,25 @@ class GTKPage(gtk.ScrolledWindow):
             hscrollbar_policy=gtk.PolicyType.NEVER
         )
         
+        # Utiliser des listes minimales par défaut pour éviter le timeout au démarrage
+        gtk_themes = [DropdownItem("Adwaita", "Adwaita"), DropdownItem("Adwaita-dark", "Adwaita-dark")]
+        icon_themes = [DropdownItem("Adwaita", "Adwaita"), DropdownItem("breeze", "breeze")]
+        cursor_themes = [DropdownItem("Adwaita", "Adwaita"), DropdownItem("breeze_cursors", "breeze_cursors")]
+        fonts = [
+            DropdownItem("Sans", "Sans"),
+            DropdownItem("Serif", "Serif"),
+            DropdownItem("Monospace", "Monospace"),
+            DropdownItem("Google Sans", "Google Sans"),
+            DropdownItem("JetBrains Mono", "JetBrains Mono")
+        ]
+        
         self.children = (
             Category("GTK Theme"),
             SettingsDropdownRow(
                 "GTK Theme",
                 "Choose GTK3/4 application theme",
                 "gtk.theme",
-                options=get_gtk_themes()
+                gtk_themes
             ),
             SettingsBoolRow(
                 "Prefer Dark Theme",
@@ -110,7 +131,7 @@ class GTKPage(gtk.ScrolledWindow):
                 "Icon Theme",
                 "Choose icon theme for applications",
                 "gtk.icon_theme",
-                options=get_icon_themes()
+                icon_themes
             ),
             SettingsBoolRow(
                 "Enable Icon Fallback",
@@ -123,7 +144,7 @@ class GTKPage(gtk.ScrolledWindow):
                 "Cursor Theme",
                 "Choose mouse cursor theme",
                 "gtk.cursor_theme",
-                options=get_cursor_themes()
+                cursor_themes
             ),
             SettingsTextRow(
                 "Cursor Size",
@@ -138,7 +159,7 @@ class GTKPage(gtk.ScrolledWindow):
                 "Interface Font",
                 "Default font for GTK applications",
                 "gtk.font",
-                options=get_fonts()
+                fonts
             ),
             SettingsTextRow(
                 "Font Size",
@@ -151,7 +172,7 @@ class GTKPage(gtk.ScrolledWindow):
                 "Monospace Font",
                 "Font for code editors and terminals",
                 "gtk.monospace_font",
-                options=get_fonts()
+                fonts
             ),
             
             Category("Behavior"),

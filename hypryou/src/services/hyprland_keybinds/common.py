@@ -85,10 +85,40 @@ def get_hyprland_keybinds() -> dict[str, dict]:
     return {}
 
 
+def get_app_name_from_command(command: str) -> str:
+    """
+    Extrait le nom de l'application depuis une commande.
+    Utilisé pour mettre à jour les descriptions dynamiquement.
+    """
+    # Mapping des commandes vers noms lisibles
+    app_mapping = {
+        "gnome-terminal": "GNOME Terminal",
+        "alacritty": "Alacritty",
+        "kitty": "Kitty",
+        "wezterm": "WezTerm",
+        "foot": "Foot",
+        "konsole": "Konsole",
+        "nautilus": "Nautilus (Files)",
+        "thunar": "Thunar (Files)",
+        "dolphin": "Dolphin (Files)",
+        "nemo": "Nemo (Files)",
+        "pcmanfm": "PCManFM (Files)",
+    }
+    
+    # Chercher si une app connue est dans la commande
+    command_lower = command.lower()
+    for app_cmd, app_name in app_mapping.items():
+        if app_cmd in command_lower:
+            return app_name
+    
+    return None
+
+
 def sync_keybind_with_hyprland(keybind: KeyBind) -> KeyBind:
     """
     Synchronise un KeyBind avec la configuration réelle de Hyprland.
     Si le bind a changé dans Hyprland, met à jour l'objet KeyBind.
+    Met également à jour la description si l'application a changé.
     """
     hypr_binds = get_hyprland_keybinds()
     bind_id = keybind.id
@@ -104,6 +134,29 @@ def sync_keybind_with_hyprland(keybind: KeyBind) -> KeyBind:
             # Mettre à jour si différent
             if hypr_info["dispatcher"] != expected_dispatcher or hypr_info["arg"] != expected_arg:
                 keybind.action = (hypr_info["dispatcher"], hypr_info["arg"])
+                
+                # Mettre à jour la description si c'est une app
+                if hypr_info["dispatcher"] == "exec" and "apps" in hypr_info["arg"]:
+                    # C'est un lanceur d'app hypryouctl
+                    if "terminal" in hypr_info["arg"]:
+                        # Récupérer le terminal configuré
+                        try:
+                            from config import Settings
+                            terminal = Settings().get("apps.terminal", "Terminal")
+                            app_name = get_app_name_from_command(terminal)
+                            if app_name:
+                                keybind.description = app_name
+                        except:
+                            pass
+                    elif "files" in hypr_info["arg"]:
+                        try:
+                            from config import Settings
+                            files_app = Settings().get("apps.files", "File Manager")
+                            app_name = get_app_name_from_command(files_app)
+                            if app_name:
+                                keybind.description = app_name
+                        except:
+                            pass
     
     return keybind
 

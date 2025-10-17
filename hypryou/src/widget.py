@@ -101,6 +101,20 @@ class LayerWindow(gtk.ApplicationWindow):
                 self.update_visible
             )
             self.update_visible(False)
+            
+            # Ajouter focus controller pour fermer au changement de focus
+            self.focus_controller = gtk.EventControllerFocus()
+            self.focus_out_handler = self.focus_controller.connect(
+                "leave", self.on_focus_leave
+            )
+            self.add_controller(self.focus_controller)
+
+    def on_focus_leave(self, controller: gtk.EventControllerFocus) -> None:
+        """Ferme le popup quand il perd le focus"""
+        if self.is_popup and self.name and self.get_visible():
+            # Petit délai pour éviter fermeture immédiate lors d'interaction
+            from repository import glib
+            glib.timeout_add(100, lambda: state.close_window(self.name) if self.get_visible() else False)
 
     def on_gaps_out(self, value: int) -> None:
         for edge in (layer_shell.Edge.BOTTOM, layer_shell.Edge.TOP,
@@ -139,12 +153,28 @@ class LayerWindow(gtk.ApplicationWindow):
 
     def show(self) -> None:
         super().show()
+        # Prendre le focus automatiquement lors de l'affichage d'un popup
+        if self.is_popup:
+            self.present()
+            # Force le focus sur la fenêtre
+            try:
+                import subprocess
+                subprocess.run(
+                    ["hyprctl", "dispatch", "focuswindow", f"address:0x{self.get_native().get_surface_id():x}"],
+                    capture_output=True,
+                    timeout=0.5
+                )
+            except:
+                pass
         self.on_show()
 
     def destroy(self) -> None:
         if hasattr(self, "key_controller"):
             self.key_controller.disconnect(self.key_handler)
             self.remove_controller(self.key_controller)
+        if hasattr(self, "focus_controller"):
+            self.focus_controller.disconnect(self.focus_out_handler)
+            self.remove_controller(self.focus_controller)
         if hasattr(self, "window_handler"):
             state.opened_windows.unwatch(self.window_handler)
         if hasattr(self, "gaps_out_handler"):

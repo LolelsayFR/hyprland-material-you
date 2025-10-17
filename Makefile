@@ -187,7 +187,17 @@ reload: build
 	fi
 	@echo "$(YELLOW)  [Rechargement de HyprYou]$(NC)"
 	@if command -v hypryouctl >/dev/null 2>&1; then \
-		hypryouctl reload && echo "$(GREEN)✓ HyprYou rechargé avec succès!$(NC)" || echo "$(RED)✗ Échec du reload (session HyprYou non active?)$(NC)"; \
+		hypryouctl reload 2>&1 | tee /tmp/hypryou_reload.log; \
+		if grep -q "hyprctl" /tmp/hypryou_reload.log || [ $$? -ne 0 ]; then \
+			echo "$(YELLOW)⚠ Problème détecté, relance de HyprYou...$(NC)"; \
+			pkill -f hypryou-start 2>/dev/null || true; \
+			sleep 1; \
+			nohup hypryou-start >/dev/null 2>&1 & \
+			echo "$(GREEN)✓ HyprYou relancé!$(NC)"; \
+		else \
+			echo "$(GREEN)✓ HyprYou rechargé avec succès!$(NC)"; \
+		fi; \
+		rm -f /tmp/hypryou_reload.log; \
 	else \
 		echo "$(RED)✗ hypryouctl non trouvé (HyprYou non installé?)$(NC)"; \
 	fi

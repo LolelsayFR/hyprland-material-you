@@ -260,7 +260,7 @@ class InfoStack(gtk.Box):
         )
 
         self._last_active: widget.StackButton | None = None
-        self.current_page = last_page or "info"
+        self.current_page = last_page or "system"  # Modifié : "system" par défaut au lieu de "info"
         self.buttons = {
             "info": widget.StackButton(
                 "info", "Info", "info",

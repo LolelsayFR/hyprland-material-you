@@ -914,8 +914,8 @@ class ModulesLeft(gtk.Box):
                 ("open-apps-menu", "icon-tonal")
             ),
             OpenWindow(
-                "info_i",
-                "Info",
+                "browse_activity",  # Modifié : icône système
+                "System",           # Modifié : label "System"
                 "info",
                 ("open-info-menu", "icon-tonal")
             ),

@@ -150,25 +150,27 @@ class KeybindWidget(gtk.Box):
         )
 
 
-class KeybindsBox(gtk.FlowBox):
+class KeybindsBox(gtk.Grid):
     __gtype_name__ = "KeybindsBox"
 
     def __init__(self) -> None:
         super().__init__(
             css_classes=("keybinds-box",),
-            selection_mode=gtk.SelectionMode.NONE,
             hexpand=True,
-            max_children_per_line=3,
-            min_children_per_line=3,
             row_spacing=8,
             column_spacing=8,
-            homogeneous=True
+            column_homogeneous=False,
+            row_homogeneous=False
         )
+        
+        # Créer les boxes de catégories
         self.boxes: dict[Category, gtk.Box] = {}
         for category, icon in CATEGORIES.items():
             box = gtk.Box(
                 css_classes=("category-box",),
-                orientation=gtk.Orientation.VERTICAL
+                orientation=gtk.Orientation.VERTICAL,
+                hexpand=True,
+                vexpand=True
             )
             label_box = gtk.Box(
                 css_classes=("label-box",)
@@ -185,7 +187,29 @@ class KeybindsBox(gtk.FlowBox):
             box.append(label_box)
             box.append(gtk.Separator())
             self.boxes[category] = box
-            self.append(box)
+        
+        # Layout personnalisé:
+        # ┌─────────┬─────────┬─────────────┐
+        # │ ACTIONS │  TOOLS  │    MISC     │  ← row 0
+        # ├─────────┼─────────┤  (2 lignes) │
+        # │ WINDOWS │WORKSPACE│             │  ← row 1
+        # ├─────────┴─────────┼─────────────┤
+        # │      APPS         │             │  ← row 2 (si nécessaire)
+        # └───────────────────┴─────────────┘
+        
+        # Row 0: ACTIONS, TOOLS, MISC
+        self.attach(self.boxes[Category.ACTIONS], 0, 0, 1, 1)
+        self.attach(self.boxes[Category.TOOLS], 1, 0, 1, 1)
+        self.attach(self.boxes[Category.MISC], 2, 0, 1, 2)  # MISC: 2 lignes (rowspan=2)
+        
+        # Row 1: WINDOWS, WORKSPACES (même ligne que MISC continue)
+        self.attach(self.boxes[Category.WINDOWS], 0, 1, 1, 1)
+        self.attach(self.boxes[Category.WORKSPACES], 1, 1, 1, 1)
+        
+        # Row 2: APPS (prend 2 colonnes)
+        self.attach(self.boxes[Category.APPS], 0, 2, 2, 1)
+        
+        # Remplir les boxes avec les keybinds
         for keybind in key_binds:
             if not keybind.description or not keybind.category:
                 continue

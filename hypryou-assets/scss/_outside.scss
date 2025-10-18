@@ -1,0 +1,134 @@
+// Outside Parameters Page Styling
+
+.outside-page {
+  .outside-main-box {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .outside-header {
+    margin-bottom: 16px;
+
+    .outside-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: $primary;
+    }
+
+    .outside-subtitle {
+      font-size: 0.95rem;
+      color: $on-surface-variant;
+      opacity: 0.8;
+    }
+  }
+
+  .outside-separator {
+    background-color: $outline;
+    opacity: 0.3;
+    min-height: 1px;
+  }
+
+  .outside-section {
+    background-color: $surface-container;
+    border-radius: $radius;
+    padding: 16px;
+    
+    .section-header {
+      margin-bottom: 12px;
+
+      .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: $on-surface;
+      }
+
+      .section-description {
+        font-size: 0.9rem;
+        color: $on-surface-variant;
+        opacity: 0.7;
+      }
+    }
+  }
+
+  .outside-tool-button {
+    background-color: $surface-container-high;
+    border-radius: $radius;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    transition: all 200ms $ease-out;
+
+    &:hover {
+      background-color: $surface-container-highest;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .icon-box {
+      icon {
+        color: $primary;
+        font-size: 32px;
+      }
+    }
+
+    .text-box {
+      .tool-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: $on-surface;
+        margin-bottom: 4px;
+      }
+
+      .tool-description {
+        font-size: 0.85rem;
+        color: $on-surface-variant;
+        opacity: 0.8;
+        line-height: 1.4;
+      }
+    }
+
+    .launch-button {
+      background-color: $primary-container;
+      border-radius: $radius-small;
+      padding: 8px;
+      min-width: 40px;
+      min-height: 40px;
+      transition: all 200ms $ease-out;
+
+      icon {
+        color: $on-primary-container;
+        font-size: 20px;
+      }
+
+      &:hover {
+        background-color: $primary;
+        
+        icon {
+          color: $on-primary;
+        }
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+
+      &:disabled {
+        background-color: $surface-container;
+        opacity: 0.5;
+
+        icon {
+          color: $on-surface-variant;
+        }
+      }
+    }
+
+    // Style spécial pour les boutons désactivés (outil non installé)
+    &:has(.launch-button:disabled) {
+      opacity: 0.6;
+      
+      .tool-description {
+        color: $error;
+        opacity: 1;
+      }
+    }
+  }
+}

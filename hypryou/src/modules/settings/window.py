@@ -50,13 +50,7 @@ def get_pages() -> dict[str, Page]:
     from src.modules.settings.input import InputPage
     from src.modules.settings.monitors import MonitorsPage
     from src.modules.settings.info import InfoPage
-    from src.modules.settings.keybinds import (
-        KeybindsPage,
-        KeybindsByTypePage,
-        KeybindsKeyboardPage,
-        KeybindsThinkPadPage,
-        KeybindsKeychronPage
-    )
+    from src.modules.settings.keybinds import KeybindsPage
     from src.modules.settings.hyprland import HyprlandPage
     from src.modules.settings.configs import ConfigsPage
     from src.modules.settings.lockscreen import LockscreenPage
@@ -80,12 +74,6 @@ def get_pages() -> dict[str, Page]:
             icon="palette",
             icon_fill=True,
             widget=AppearancePage
-        ),
-        "outside": Page(
-            title="Outside",
-            icon="open_in_new",
-            icon_fill=False,
-            widget=OutsidePage
         ),
         "wallpaper": Page(
             title="Wallpaper",
@@ -129,35 +117,17 @@ def get_pages() -> dict[str, Page]:
             icon_fill=False,
             widget=HyprlandPage
         ),
-        "keybinds-all": Page(
-            title="Keybinds - All",
+        "keybinds": Page(
+            title="Keybinds",
             icon="action_key",
             icon_fill=True,
             widget=KeybindsPage
         ),
-        "keybinds-type": Page(
-            title="Keybinds - By Type",
-            icon="category",
+        "outside": Page(
+            title="Outside",
+            icon="open_in_new",
             icon_fill=False,
-            widget=KeybindsByTypePage
-        ),
-        "keybinds-keyboard": Page(
-            title="Keybinds - Keyboard",
-            icon="keyboard",
-            icon_fill=True,
-            widget=KeybindsKeyboardPage
-        ),
-        "keybinds-thinkpad": Page(
-            title="Keybinds - ThinkPad",
-            icon="laptop",
-            icon_fill=False,
-            widget=KeybindsThinkPadPage
-        ),
-        "keybinds-keychron": Page(
-            title="Keybinds - Keychron",
-            icon="keyboard_alt",
-            icon_fill=False,
-            widget=KeybindsKeychronPage
+            widget=OutsidePage
         ),
         "info": Page(
             title="Info",
@@ -190,11 +160,7 @@ sidebar = (
     "separator",
     "configs",
     "hyprland",
-    "keybinds-all",
-    "keybinds-type",
-    "keybinds-keyboard",
-    "keybinds-thinkpad",
-    "keybinds-keychron",
+    "keybinds",
     "separator",
     "outside",
     "info"
@@ -372,6 +338,12 @@ class SettingsBox(gtk.Box):
             _widget = self.pages_widgets[name]()
             self.pages[name] = _widget
             self.stack.add_named(_widget, name)
+            
+            # Si c'est la page Outside, lui passer la référence de la fenêtre
+            if name == "outside" and hasattr(_widget, "set_settings_window"):
+                window = self.window()
+                if window is not None:
+                    _widget.set_settings_window(window)
 
         self.stack.set_visible_child_name(name)
         toggle_css_class(self.buttons[name], "active", True)

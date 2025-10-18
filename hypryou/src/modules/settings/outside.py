@@ -6,6 +6,7 @@ from utils.logger import logger
 import src.widget as widget
 import typing as t
 import subprocess
+import weakref
 
 
 class OutsideToolButton(gtk.Box):
@@ -16,8 +17,9 @@ class OutsideToolButton(gtk.Box):
         title: str,
         description: str,
         icon: str,
-        command: str | list[str],
-        check_command: str | None = None
+        command: str,
+        check_command: str | None = None,
+        close_window: bool = True
     ) -> None:
         super().__init__(
             css_classes=("outside-tool-button",),
@@ -25,8 +27,10 @@ class OutsideToolButton(gtk.Box):
             spacing=12
         )
         
-        self.command = command if isinstance(command, list) else [command]
+        self.command = command
         self.check_command = check_command
+        self.close_window = close_window
+        self._settings_window: weakref.ReferenceType | None = None
         
         # Icône
         icon_box = gtk.Box(
@@ -81,7 +85,7 @@ class OutsideToolButton(gtk.Box):
     
     def _check_available(self) -> bool:
         """Vérifie si l'outil est disponible"""
-        check_cmd = self.check_command if self.check_command else self.command[0]
+        check_cmd = self.check_command if self.check_command else self.command.split()[0]
         try:
             result = subprocess.run(
                 ["which", check_cmd],
@@ -98,9 +102,19 @@ class OutsideToolButton(gtk.Box):
             # Lancer l'outil externe
             launch_detached(self.command)
             if __debug__:
-                logger.debug(f"Launched external tool: {' '.join(self.command)}")
+                logger.debug(f"Launched external tool: {self.command}")
+            
+            # Fermer le menu settings si demandé
+            if self.close_window and self._settings_window is not None:
+                window = self._settings_window()
+                if window is not None and not window._destroyed:
+                    window.destroy()
         except Exception as e:
             logger.error(f"Failed to launch {self.command}: {e}")
+    
+    def set_settings_window(self, window: gtk.ApplicationWindow) -> None:
+        """Définit la fenêtre settings pour pouvoir la fermer"""
+        self._settings_window = weakref.ref(window)
 
 
 class OutsidePage(gtk.ScrolledWindow):
@@ -112,6 +126,9 @@ class OutsidePage(gtk.ScrolledWindow):
             hexpand=True,
             vexpand=True
         )
+        
+        # Liste des boutons pour pouvoir leur passer la fenêtre plus tard
+        self._tool_buttons: list[OutsideToolButton] = []
         
         # Container principal
         main_box = gtk.Box(
@@ -166,9 +183,10 @@ class OutsidePage(gtk.ScrolledWindow):
             title="GTK Settings",
             description="Configure l'apparence des applications GTK (thèmes, icônes, fonts)",
             icon="new_window",
-            command=["env", "XDG_CURRENT_DESKTOP=GNOME", "gnome-control-center", "appearance"],
+            command="env XDG_CURRENT_DESKTOP=GNOME gnome-control-center appearance",
             check_command="gnome-control-center"
         )
+        self._tool_buttons.append(gtk_button)
         gtk_section.append(gtk_button)
         
         # LXAppearance (alternative)
@@ -176,10 +194,20 @@ class OutsidePage(gtk.ScrolledWindow):
             title="LXAppearance",
             description="Alternative légère pour configurer les thèmes GTK",
             icon="palette",
-            command="lxappearance",
-            check_command="lxappearance"
+            command="lxappearance"
         )
+        self._tool_buttons.append(lxappearance_button)
         gtk_section.append(lxappearance_button)
+        
+        # nwg-look (Wayland native)
+        nwglook_button = OutsideToolButton(
+            title="nwg-look",
+            description="Outil GTK natif pour Wayland (thèmes, icônes, curseurs)",
+            icon="style",
+            command="nwg-look"
+        )
+        self._tool_buttons.append(nwglook_button)
+        gtk_section.append(nwglook_button)
         
         main_box.append(gtk_section)
         
@@ -189,24 +217,25 @@ class OutsidePage(gtk.ScrolledWindow):
             "Gestion avancée des moniteurs"
         )
         
-        # wdisplay
-        wdisplay_button = OutsideToolButton(
-            title="wdisplay",
+        # wdisplays
+        wdisplays_button = OutsideToolButton(
+            title="wdisplays",
             description="Gestionnaire d'écrans Wayland (position, rotation, résolution)",
             icon="monitor",
-            command="wdisplay",
-            check_command="wdisplay"
+            command="wdisplays"
         )
-        display_section.append(wdisplay_button)
+        self._tool_buttons.append(wdisplays_button)
+        display_section.append(wdisplays_button)
         
         # Hyprland monitors
         hyprland_monitor_button = OutsideToolButton(
             title="Hyprland Monitors",
             description="Configuration des moniteurs via fichier Hyprland",
             icon="tune",
-            command=["xdg-open", "~/.config/hypr/monitors.conf"],
-            check_command="xdg-open"
+            command="xdg-open ~/.config/hypr/monitors.conf",
+            close_window=False  # Ne pas fermer pour éditer le fichier
         )
+        self._tool_buttons.append(hyprland_monitor_button)
         display_section.append(hyprland_monitor_button)
         
         main_box.append(display_section)
@@ -222,9 +251,9 @@ class OutsidePage(gtk.ScrolledWindow):
             title="PulseAudio Volume Control",
             description="Contrôle avancé du volume et des périphériques audio",
             icon="volume_up",
-            command="pavucontrol",
-            check_command="pavucontrol"
+            command="pavucontrol"
         )
+        self._tool_buttons.append(pavucontrol_button)
         av_section.append(pavucontrol_button)
         
         # EasyEffects
@@ -232,9 +261,9 @@ class OutsidePage(gtk.ScrolledWindow):
             title="EasyEffects",
             description="Effets audio professionnels (égaliseur, compresseur, etc.)",
             icon="graphic_eq",
-            command="easyeffects",
-            check_command="easyeffects"
+            command="easyeffects"
         )
+        self._tool_buttons.append(easyeffects_button)
         av_section.append(easyeffects_button)
         
         main_box.append(av_section)
@@ -250,14 +279,19 @@ class OutsidePage(gtk.ScrolledWindow):
             title="dconf Editor",
             description="Éditeur de configuration bas niveau pour GNOME/GTK",
             icon="settings",
-            command="dconf-editor",
-            check_command="dconf-editor"
+            command="dconf-editor"
         )
+        self._tool_buttons.append(dconf_button)
         system_section.append(dconf_button)
         
         main_box.append(system_section)
         
         self.set_child(main_box)
+    
+    def set_settings_window(self, window: gtk.ApplicationWindow) -> None:
+        """Définit la fenêtre settings pour tous les boutons"""
+        for button in self._tool_buttons:
+            button.set_settings_window(window)
     
     def _create_section(self, title: str, description: str) -> gtk.Box:
         """Crée une section avec titre"""

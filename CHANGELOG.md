@@ -26,15 +26,23 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
   - Meilleure performance et expérience utilisateur
   - Voir [KEYBINDS-LAYOUT-UPDATE.md](KEYBINDS-LAYOUT-UPDATE.md)
 
-- **Configuration GTK fonts**
-  - Ajout `gtk_font` et `gtk_font_size` dans config.py
-  - Interface de configuration dans Settings > GTK
+- **Page Outside Parameters** 🔧
+  - Remplacement de la page GTK Settings intégrée
+  - Accès rapide aux outils de configuration externes
+  - Boutons vers : GTK Settings, wdisplay, pavucontrol, EasyEffects, dconf-editor
+  - Détection automatique de disponibilité
+  - Respect de la philosophie originale : ne pas réinventer la roue
+  - Voir [OUTSIDE-REFACTOR.md](OUTSIDE-REFACTOR.md)
 
 ### Modifié
 - **Catégories Keybinds** : Fusion Workspaces → Windows
 - **Compatibilité GTK4** : `load_from_string()` au lieu de `load_from_data()` pour CSS
 - **Player widgets** : Détection automatique des changements de piste
 - **Règles Hyprland** : Ajout support complet Deezer (4 classes)
+- **Settings Architecture** : Approche plus simple et respectueuse de la vision originale
+
+### Supprimé
+- **Page GTK Settings intégrée** : Remplacée par Outside Parameters pour éviter la duplication
 
 ### Corrigé
 - Pochettes d'album ne se mettant pas à jour dans Deezer

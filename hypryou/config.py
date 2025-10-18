@@ -33,6 +33,7 @@ state_dir = pjoin(
 )
 # NOTE: ~/wallpaper is for backward compatibility with v1
 wallpaper_dirs = [
+    pjoin(ASSETS_DIR, "wallpapers"),  # Droeloe artworks (upscaled by AI)
     pjoin(PICTURES_DIR, "wallpapers"),
     pjoin(HOME, "wallpaper")
 ]

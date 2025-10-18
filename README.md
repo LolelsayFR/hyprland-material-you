@@ -21,6 +21,17 @@ HyprYou (hyprland-material-you v2). It aims to provide a modern, feature-rich, a
 - **Demo video:** [Reddit post](https://www.reddit.com/r/unixporn/comments/1mj2p6x/hyprland_hyprland_material_you_v2_hypryou/)  
 - **Screenshot:** [![Screenshot](assets/screenshot.png "Screenshot")](assets/screenshot.png)
 
+## Wallpapers
+
+The default wallpapers included in this fork are **artworks from [DROELOE](https://www.droeloemusic.com/)**, a talented electronic music duo. These beautiful, colorful artworks have been **upscaled using AI** to provide high-quality wallpapers that perfectly complement the Material You color scheme generation.
+
+- **33 unique DROELOE artworks** included in `hypryou-assets/wallpapers/`
+- **AI upscaled** for superior quality and sharpness
+- Optimized for Material You dynamic theming
+- Access them via **Settings → Wallpaper**
+
+All artworks are property of DROELOE and are included here for aesthetic purposes to showcase the Material You theming system.
+
 > [!TIP]
 > When you run HyprYou as DE session (from SDDM, Greetd, etc.) it doesn't use `~/.config/hypr/hyprland.conf`  
 > For any custom variables/configs look for `~/.config/hypryou/hyprland.conf`  

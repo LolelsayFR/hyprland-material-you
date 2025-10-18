@@ -421,6 +421,13 @@ class Player(gtk.Box):
         self.set_tooltip_markup(text)
         self.children[1].set_label(text)
 
+    def _is_deezer(self) -> bool:
+        """Vérifie si le lecteur actuel est Deezer"""
+        if len(current_player.value) != 2:
+            return False
+        bus_name = current_player.value[1].get_bus_name().lower()
+        return "deezer" in bus_name
+
     def on_download(self, filepath: str | None) -> None:
         if not self.children:
             return
@@ -428,7 +435,7 @@ class Player(gtk.Box):
             self.children[0].set_visible(False)
             return
         css = f"box {{ background-image: url('file://{filepath}'); }}"
-        self.image_provider.load_from_data(css)
+        self.image_provider.load_from_string(css)
 
     def update_image(self) -> None:
         if len(current_player.value) != 2:
@@ -447,9 +454,21 @@ class Player(gtk.Box):
             self.children[0].set_visible(True)
 
             self.last_changed.artUrl = art_url
-            downloader.download_image_async(
-                art_url, self.on_download, (24, 24), "arts"
-            )
+            
+            # Pour Deezer : utiliser l'URL distante directement
+            if self._is_deezer():
+                try:
+                    css = f"box {{ background-image: url('{art_url}'); }}"
+                    self.image_provider.load_from_string(css)
+                except Exception as e:
+                    if __debug__:
+                        logger.debug("Failed to load Deezer image in bar: %s", e)
+                    self.children[0].set_visible(False)
+            else:
+                # Pour les autres lecteurs : télécharger avec cache
+                downloader.download_image_async(
+                    art_url, self.on_download, (24, 24), "arts"
+                )
 
     def update_all(self) -> None:
         self.update_image()

@@ -50,7 +50,13 @@ def get_pages() -> dict[str, Page]:
     from src.modules.settings.input import InputPage
     from src.modules.settings.monitors import MonitorsPage
     from src.modules.settings.info import InfoPage
-    from src.modules.settings.keybinds import KeybindsPage
+    from src.modules.settings.keybinds import (
+        KeybindsPage,
+        KeybindsByTypePage,
+        KeybindsKeyboardPage,
+        KeybindsThinkPadPage,
+        KeybindsKeychronPage
+    )
     from src.modules.settings.hyprland import HyprlandPage
     from src.modules.settings.configs import ConfigsPage
     from src.modules.settings.lockscreen import LockscreenPage
@@ -123,11 +129,35 @@ def get_pages() -> dict[str, Page]:
             icon_fill=False,
             widget=HyprlandPage
         ),
-        "keybinds": Page(
-            title="Keybinds",
+        "keybinds-all": Page(
+            title="Keybinds - All",
             icon="action_key",
             icon_fill=True,
             widget=KeybindsPage
+        ),
+        "keybinds-type": Page(
+            title="Keybinds - By Type",
+            icon="category",
+            icon_fill=False,
+            widget=KeybindsByTypePage
+        ),
+        "keybinds-keyboard": Page(
+            title="Keybinds - Keyboard",
+            icon="keyboard",
+            icon_fill=True,
+            widget=KeybindsKeyboardPage
+        ),
+        "keybinds-thinkpad": Page(
+            title="Keybinds - ThinkPad",
+            icon="laptop",
+            icon_fill=False,
+            widget=KeybindsThinkPadPage
+        ),
+        "keybinds-keychron": Page(
+            title="Keybinds - Keychron",
+            icon="keyboard_alt",
+            icon_fill=False,
+            widget=KeybindsKeychronPage
         ),
         "info": Page(
             title="Info",
@@ -161,7 +191,11 @@ sidebar = (
     "separator",
     "configs",
     "hyprland",
-    "keybinds",
+    "keybinds-all",
+    "keybinds-type",
+    "keybinds-keyboard",
+    "keybinds-thinkpad",
+    "keybinds-keychron",
     "separator",
     "info"
 )

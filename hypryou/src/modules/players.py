@@ -58,12 +58,24 @@ class Player(gtk.Box):
         self.info_box.append(self.image)
         self.info_box.append(self.text_box)
 
-        self.player = gtk.Label(
-            css_classes=("player",),
-            halign=gtk.Align.END,
-            label=item.get_bus_name().split(".")[3].capitalize(),
-            tooltip_text=item.get_bus_name()
-        )
+        # Créer le widget du nom du player (icône pour Deezer, texte sinon)
+        bus_name = item.get_bus_name()
+        player_name = bus_name.split(".")[3].capitalize()
+        
+        if "deezer" in bus_name.lower():
+            # Utiliser l'icône Deezer
+            self.player = gtk.Image.new_from_icon_name("deezer-desktop")
+            self.player.set_pixel_size(16)
+            self.player.set_css_classes(["player-icon"])
+            self.player.set_halign(gtk.Align.END)
+            self.player.set_tooltip_text(bus_name)
+        else:
+            self.player = gtk.Label(
+                css_classes=("player",),
+                halign=gtk.Align.END,
+                label=player_name,
+                tooltip_text=bus_name
+            )
         self.title = gtk.Label(
             css_classes=("title",),
             ellipsize=pango.EllipsizeMode.END,
@@ -254,10 +266,17 @@ class Player(gtk.Box):
             self.last_changed.title = None
             self.last_changed.artists = None
         else:
-            if (
-                _artists == self.last_changed.artists
-                and _title == self.last_changed.title
-            ):
+            # Détecter si le titre ou l'artiste a changé
+            title_changed = (
+                _artists != self.last_changed.artists
+                or _title != self.last_changed.title
+            )
+            
+            if title_changed:
+                # Forcer la mise à jour de l'image quand la piste change
+                self.update_image(force=True)
+            
+            if not title_changed:
                 return
 
             self.last_changed.title = _title
@@ -273,32 +292,63 @@ class Player(gtk.Box):
             else:
                 label.set_visible(False)
 
+    def _is_deezer(self) -> bool:
+        """Vérifie si le lecteur est Deezer"""
+        bus_name = self._item.get_bus_name().lower()
+        return "deezer" in bus_name
+
     def on_download(self, filepath: str | None) -> None:
         if not filepath:
             self.image.set_visible(False)
             return
-        css = f"box {{ background-image: url('file://{filepath}'); }}"
-        self.image_provider.load_from_data(css)
+        try:
+            css = f"box {{ background-image: url('file://{filepath}'); }}"
+            self.image_provider.load_from_string(css)
+            self.image.set_visible(True)
+        except Exception as e:
+            if __debug__:
+                logger.debug("Failed to load player image: %s", e)
+            self.image.set_visible(False)
 
-    def update_image(self) -> None:
+    def update_image(self, force: bool = False) -> None:
         metadata = self._item.metadata
         art_url = metadata.get("mpris:artUrl")
         if not art_url:
             self.image.set_visible(False)
+            self.last_changed.art_url = None
             return
-        if art_url == self.last_changed.art_url:
-            return
-        self.image.set_visible(True)
-
-        self.last_changed.art_url = art_url
-        downloader.download_image_async(
-            art_url, self.on_download, (64, 64), "arts"
-        )
+        
+        # Pour Deezer : utiliser l'URL distante directement (pas de cache)
+        if self._is_deezer():
+            if force or art_url != self.last_changed.art_url:
+                if __debug__:
+                    logger.debug("Updating Deezer album art directly: %s", art_url)
+                self.last_changed.art_url = art_url
+                try:
+                    css = f"box {{ background-image: url('{art_url}'); }}"
+                    self.image_provider.load_from_string(css)
+                    self.image.set_visible(True)
+                except Exception as e:
+                    if __debug__:
+                        logger.debug("Failed to load Deezer image: %s", e)
+                    self.image.set_visible(False)
+        else:
+            # Pour les autres lecteurs : télécharger avec cache
+            if force or art_url != self.last_changed.art_url:
+                if __debug__:
+                    logger.debug("Updating album art (force=%s): %s", force, art_url)
+                self.last_changed.art_url = art_url
+                self.image.set_visible(True)
+                downloader.download_image_async(
+                    art_url, self.on_download, (64, 64), "arts"
+                )
 
     def on_change(self) -> None:
         try:
-            self.update_image()
+            # update_label() va appeler update_image(force=True) si le titre change
+            # Sinon on appelle update_image() normalement pour les changements d'URL
             self.update_label()
+            self.update_image()
             self.update_slider()
             self.update_buttons()
         except AttributeError:

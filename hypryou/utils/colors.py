@@ -673,7 +673,29 @@ def update_gtk(
         src = Path(src_path)
         dst = Path(dst_dir) / "gtk.css"
         dst.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Si c'est un symlink, le supprimer avant d'écrire
+        if dst.is_symlink() or dst.exists():
+            try:
+                dst.unlink()
+            except Exception:
+                pass
+        
         shutil.copy(src, dst)
+        
+        # Supprimer les imports libadwaita qui causent des erreurs
+        try:
+            with open(dst, 'r') as f:
+                content = f.read()
+            # Supprimer les lignes @import 'libadwaita...'
+            content = '\n'.join(
+                line for line in content.split('\n')
+                if not line.strip().startswith("@import 'libadwaita")
+            )
+            with open(dst, 'w') as f:
+                f.write(content)
+        except Exception:
+            pass
 
 
 def update_gtk3() -> None:

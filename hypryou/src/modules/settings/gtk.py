@@ -2,8 +2,10 @@ from src.modules.settings.base import SettingsBoolRow, SettingsTextRow, Settings
 from src.modules.settings.base import Category, DropdownItem
 from src.modules.settings.base import int_kwargs, float_kwargs
 from repository import gtk
+from config import Settings
 import subprocess
 import os
+import json
 
 
 def get_gtk_themes():
@@ -109,7 +111,19 @@ class GTKPage(gtk.ScrolledWindow):
             DropdownItem("Serif", "Serif"),
             DropdownItem("Monospace", "Monospace"),
             DropdownItem("Google Sans", "Google Sans"),
-            DropdownItem("JetBrains Mono", "JetBrains Mono")
+            DropdownItem("JetBrains Mono", "JetBrains Mono"),
+            DropdownItem("Noto Sans", "Noto Sans"),
+            DropdownItem("DejaVu Sans", "DejaVu Sans"),
+            DropdownItem("Liberation Sans", "Liberation Sans")
+        ]
+        font_styles = [
+            DropdownItem("Regular", "Regular"),
+            DropdownItem("Bold", "Bold"),
+            DropdownItem("Italic", "Italic"),
+            DropdownItem("Bold Italic", "Bold Italic"),
+            DropdownItem("Light", "Light"),
+            DropdownItem("Medium", "Medium"),
+            DropdownItem("SemiBold", "SemiBold")
         ]
         
         self.children = (
@@ -157,9 +171,15 @@ class GTKPage(gtk.ScrolledWindow):
             Category("Fonts"),
             SettingsDropdownRow(
                 "Interface Font",
-                "Default font for GTK applications",
+                "Font family for GTK applications",
                 "gtk.font",
                 fonts
+            ),
+            SettingsDropdownRow(
+                "Interface Font Style",
+                "Style for interface font",
+                "gtk.font_style",
+                font_styles
             ),
             SettingsTextRow(
                 "Font Size",
@@ -170,9 +190,15 @@ class GTKPage(gtk.ScrolledWindow):
             ),
             SettingsDropdownRow(
                 "Monospace Font",
-                "Font for code editors and terminals",
+                "Font family for code editors and terminals",
                 "gtk.monospace_font",
                 fonts
+            ),
+            SettingsDropdownRow(
+                "Monospace Font Style",
+                "Style for monospace font",
+                "gtk.monospace_font_style",
+                font_styles
             ),
             
             Category("Behavior"),
@@ -221,3 +247,92 @@ class GTKPage(gtk.ScrolledWindow):
 
         for child in self.children:
             self.box.append(child)
+        
+        # Boutons Apply et Save
+        button_box = gtk.Box(
+            orientation=gtk.Orientation.HORIZONTAL,
+            spacing=12,
+            halign=gtk.Align.CENTER,
+            css_classes=("gtk-buttons-box",)
+        )
+        button_box.set_margin_top(24)
+        button_box.set_margin_bottom(24)
+        
+        self.apply_button = gtk.Button(
+            label="Apply",
+            css_classes=("apply-button", "suggested-action")
+        )
+        self.apply_button.connect("clicked", self._on_apply_clicked)
+        
+        self.save_button = gtk.Button(
+            label="Save",
+            css_classes=("save-button", "suggested-action")
+        )
+        self.save_button.connect("clicked", self._on_save_clicked)
+        
+        button_box.append(self.apply_button)
+        button_box.append(self.save_button)
+        self.box.append(button_box)
+    
+    def _on_apply_clicked(self, button):
+        """Apply GTK settings temporarily (runtime only)"""
+        settings = Settings()
+        
+        # Appliquer via gsettings
+        try:
+            subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "gtk-theme", settings.gtk.theme], check=False)
+            subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "icon-theme", settings.gtk.icon_theme], check=False)
+            subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "cursor-theme", settings.gtk.cursor_theme], check=False)
+            subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "cursor-size", str(settings.gtk.cursor_size)], check=False)
+            
+            # Police avec style
+            font_style = getattr(settings.gtk, 'font_style', 'Regular')
+            font_string = f"{settings.gtk.font} {font_style} {settings.gtk.font_size}"
+            subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "font-name", font_string], check=False)
+            
+            monospace_style = getattr(settings.gtk, 'monospace_font_style', 'Regular')
+            monospace_string = f"{settings.gtk.monospace_font} {monospace_style} {settings.gtk.font_size}"
+            subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "monospace-font-name", monospace_string], check=False)
+            
+            print("✓ GTK settings applied (temporary)")
+        except Exception as e:
+            print(f"✗ Error applying GTK settings: {e}")
+    
+    def _on_save_clicked(self, button):
+        """Save GTK settings to config file"""
+        settings = Settings()
+        settings_path = os.path.expanduser("~/.config/hypryou/settings.json")
+        
+        try:
+            # Lire le fichier existant
+            if os.path.exists(settings_path):
+                with open(settings_path, 'r') as f:
+                    data = json.load(f)
+            else:
+                data = {}
+            
+            # Mettre à jour les valeurs GTK
+            if 'gtk' not in data:
+                data['gtk'] = {}
+            
+            data['gtk']['theme'] = settings.gtk.theme
+            data['gtk']['icon_theme'] = settings.gtk.icon_theme
+            data['gtk']['cursor_theme'] = settings.gtk.cursor_theme
+            data['gtk']['cursor_size'] = settings.gtk.cursor_size
+            data['gtk']['font'] = settings.gtk.font
+            data['gtk']['font_style'] = getattr(settings.gtk, 'font_style', 'Regular')
+            data['gtk']['font_size'] = settings.gtk.font_size
+            data['gtk']['monospace_font'] = settings.gtk.monospace_font
+            data['gtk']['monospace_font_style'] = getattr(settings.gtk, 'monospace_font_style', 'Regular')
+            
+            # Sauvegarder
+            os.makedirs(os.path.dirname(settings_path), exist_ok=True)
+            with open(settings_path, 'w') as f:
+                json.dump(data, f, indent=2)
+            
+            print("✓ GTK settings saved to", settings_path)
+            
+            # Appliquer aussi
+            self._on_apply_clicked(button)
+        except Exception as e:
+            print(f"✗ Error saving GTK settings: {e}")

@@ -76,9 +76,13 @@ CATEGORIES = {
     Category.ACTIONS: "action_key",
     Category.TOOLS: "build",
     Category.APPS: "apps",
-    Category.WINDOWS: "select_window",
-    Category.WORKSPACES: "overview_key",
+    Category.WINDOWS: "select_window",  # Fusionné avec Workspaces
     Category.MISC: "construction"
+}
+
+# Catégories fusionnées : Windows inclut maintenant Workspaces
+MERGED_CATEGORIES = {
+    Category.WINDOWS: [Category.WINDOWS, Category.WORKSPACES]
 }
 
 
@@ -176,8 +180,11 @@ class KeybindsBox(gtk.Grid):
                 css_classes=("label-box",)
             )
             _icon = widget.Icon(icon)
+            
+            # Label spécial pour WINDOWS (fusionné avec Workspaces)
+            label_text = "Windows & Workspaces" if category == Category.WINDOWS else category
             label = gtk.Label(
-                label=category,
+                label=label_text,
                 css_classes=("category",),
                 halign=gtk.Align.START
             )
@@ -192,22 +199,18 @@ class KeybindsBox(gtk.Grid):
         # ┌─────────┬─────────┬─────────────┐
         # │ ACTIONS │  TOOLS  │    MISC     │  ← row 0
         # ├─────────┼─────────┤  (2 lignes) │
-        # │ WINDOWS │WORKSPACE│             │  ← row 1
-        # ├─────────┴─────────┼─────────────┤
-        # │      APPS         │             │  ← row 2 (si nécessaire)
-        # └───────────────────┴─────────────┘
+        # │ WINDOWS │  APPS   │             │  ← row 1
+        # │  + WS   │         │             │
+        # └─────────┴─────────┴─────────────┘
         
         # Row 0: ACTIONS, TOOLS, MISC
         self.attach(self.boxes[Category.ACTIONS], 0, 0, 1, 1)
         self.attach(self.boxes[Category.TOOLS], 1, 0, 1, 1)
         self.attach(self.boxes[Category.MISC], 2, 0, 1, 2)  # MISC: 2 lignes (rowspan=2)
         
-        # Row 1: WINDOWS, WORKSPACES (même ligne que MISC continue)
+        # Row 1: WINDOWS (fusionné avec WORKSPACES), APPS
         self.attach(self.boxes[Category.WINDOWS], 0, 1, 1, 1)
-        self.attach(self.boxes[Category.WORKSPACES], 1, 1, 1, 1)
-        
-        # Row 2: APPS (prend 2 colonnes)
-        self.attach(self.boxes[Category.APPS], 0, 2, 2, 1)
+        self.attach(self.boxes[Category.APPS], 1, 1, 1, 1)
         
         # Remplir les boxes avec les keybinds
         for keybind in key_binds:
@@ -216,8 +219,164 @@ class KeybindsBox(gtk.Grid):
             # Synchroniser avec les keybinds réels de Hyprland
             synced_keybind = sync_keybind_with_hyprland(keybind)
             _widget = KeybindWidget(synced_keybind)
-            self.boxes[keybind.category].append(_widget)
+            
+            # Fusionner WORKSPACES dans WINDOWS
+            if keybind.category == Category.WORKSPACES:
+                self.boxes[Category.WINDOWS].append(_widget)
+            else:
+                self.boxes[keybind.category].append(_widget)
 
+    def destroy(self) -> None:
+        ...
+
+
+class KeybindsNotebook(gtk.Notebook):
+    """Notebook avec onglets pour organiser les keybinds"""
+    __gtype_name__ = "KeybindsNotebook"
+
+    def __init__(self) -> None:
+        super().__init__(
+            css_classes=("keybinds-notebook",),
+            hexpand=True,
+            vexpand=True
+        )
+        
+        # Créer les pages
+        self.pages = {
+            "Toutes": self._create_all_page(),
+            "Par Type": self._create_by_type_page(),
+            "Clavier": self._create_keyboard_page(),
+            "ThinkPad": self._create_thinkpad_page(),
+            "Keychron": self._create_keychron_page(),
+        }
+        
+        for label, page in self.pages.items():
+            tab_label = gtk.Label(label=label, css_classes=("tab-label",))
+            self.append_page(page, tab_label)
+    
+    def _create_all_page(self) -> gtk.Widget:
+        """Page avec tous les keybinds (layout actuel)"""
+        return KeybindsBox()
+    
+    def _create_by_type_page(self) -> gtk.Widget:
+        """Page organisée par type d'action"""
+        box = gtk.Box(orientation=gtk.Orientation.VERTICAL, spacing=8)
+        
+        # Grouper par catégorie de manière linéaire
+        for category, icon in CATEGORIES.items():
+            cat_box = self._create_category_section(category, icon)
+            box.append(cat_box)
+        
+        scrolled = gtk.ScrolledWindow(
+            css_classes=("keybinds-scrolled",),
+            hscrollbar_policy=gtk.PolicyType.NEVER,
+            child=box
+        )
+        return scrolled
+    
+    def _create_keyboard_page(self) -> gtk.Widget:
+        """Page avec keybinds clavier standard (SUPER+...)"""
+        box = gtk.Box(orientation=gtk.Orientation.VERTICAL, spacing=8)
+        
+        for keybind in key_binds:
+            if not keybind.description or not keybind.category:
+                continue
+            # Filtrer les keybinds avec modifier SUPER
+            if len(keybind.bind) > 1 and "super" in [b.lower() for b in keybind.bind]:
+                synced = sync_keybind_with_hyprland(keybind)
+                box.append(KeybindWidget(synced))
+        
+        scrolled = gtk.ScrolledWindow(
+            css_classes=("keybinds-scrolled",),
+            hscrollbar_policy=gtk.PolicyType.NEVER,
+            child=box
+        )
+        return scrolled
+    
+    def _create_thinkpad_page(self) -> gtk.Widget:
+        """Page avec touches Fn ThinkPad"""
+        box = gtk.Box(orientation=gtk.Orientation.VERTICAL, spacing=8)
+        
+        for keybind in key_binds:
+            if not keybind.description or not keybind.category:
+                continue
+            # Filtrer les touches XF86 spécifiques ThinkPad
+            key = keybind.bind[-1].lower() if keybind.bind else ""
+            thinkpad_keys = ["xf86display", "xf86wlan", "xf86bluetooth", "xf86keyboard", 
+                           "xf86favorites", "xf86notificationcenter", "xf86pickupphone", 
+                           "xf86hangupphone", "xf86rfkill", "xf86audiomicmute"]
+            if key in thinkpad_keys:
+                synced = sync_keybind_with_hyprland(keybind)
+                box.append(KeybindWidget(synced))
+        
+        scrolled = gtk.ScrolledWindow(
+            css_classes=("keybinds-scrolled",),
+            hscrollbar_policy=gtk.PolicyType.NEVER,
+            child=box
+        )
+        return scrolled
+    
+    def _create_keychron_page(self) -> gtk.Widget:
+        """Page avec touches Keychron Q1 HE"""
+        box = gtk.Box(orientation=gtk.Orientation.VERTICAL, spacing=8)
+        
+        for keybind in key_binds:
+            if not keybind.description or not keybind.category:
+                continue
+            # Filtrer les touches Keychron (media, launchers)
+            key = keybind.bind[-1].lower() if keybind.bind else ""
+            keychron_keys = ["xf86audioplay", "xf86audiopause", "xf86audionext", "xf86audioprev",
+                           "xf86audiostop", "xf86audiorewind", "xf86audioforward", "xf86audiomute",
+                           "xf86audiolowervolume", "xf86audioraisevolume", "xf86monbrightnessdown",
+                           "xf86monbrightnessup", "xf86launcha", "xf86launchb", "xf86homepage",
+                           "xf86mail", "xf86search", "xf86explorer", "xf86calculator"]
+            if key in keychron_keys:
+                synced = sync_keybind_with_hyprland(keybind)
+                box.append(KeybindWidget(synced))
+        
+        scrolled = gtk.ScrolledWindow(
+            css_classes=("keybinds-scrolled",),
+            hscrollbar_policy=gtk.PolicyType.NEVER,
+            child=box
+        )
+        return scrolled
+    
+    def _create_category_section(self, category: Category, icon_name: str) -> gtk.Widget:
+        """Créer une section pour une catégorie"""
+        box = gtk.Box(
+            css_classes=("category-box",),
+            orientation=gtk.Orientation.VERTICAL
+        )
+        
+        # Header
+        label_box = gtk.Box(css_classes=("label-box",))
+        _icon = widget.Icon(icon_name)
+        
+        # Label spécial pour WINDOWS (fusionné avec Workspaces)
+        label_text = "Windows & Workspaces" if category == Category.WINDOWS else category
+        label = gtk.Label(
+            label=label_text,
+            css_classes=("category",),
+            halign=gtk.Align.START
+        )
+        label_box.append(_icon)
+        label_box.append(label)
+        box.append(label_box)
+        box.append(gtk.Separator())
+        
+        # Keybinds
+        for keybind in key_binds:
+            # Fusionner WORKSPACES dans WINDOWS
+            keybind_category = keybind.category
+            if keybind_category == Category.WORKSPACES:
+                keybind_category = Category.WINDOWS
+            
+            if keybind_category == category and keybind.description:
+                synced = sync_keybind_with_hyprland(keybind)
+                box.append(KeybindWidget(synced))
+        
+        return box
+    
     def destroy(self) -> None:
         ...
 
@@ -242,7 +401,7 @@ class KeybindsWindow(widget.LayerWindow):
             setup_popup=True,
             child=self.box
         )
-        self._child: KeybindsBox | None = None
+        self._child: KeybindsNotebook | None = None
 
         if __debug__:
             weakref.finalize(
@@ -250,7 +409,7 @@ class KeybindsWindow(widget.LayerWindow):
             )
 
     def on_show(self) -> None:
-        self._child = KeybindsBox()
+        self._child = KeybindsNotebook()
         self.box.append(self._child)
 
     def on_hide(self) -> None:

@@ -207,7 +207,8 @@ class KeybindRow(RowTemplate):
             button.disconnect(handler)
 
 
-class KeybindsPage(gtk.Box):
+class KeybindsPage(gtk.ScrolledWindow):
+    """Page Keybinds - Tous les keybinds"""
     __gtype_name__ = "SettingsKeybindsPage"
 
     def __init__(self) -> None:
@@ -215,38 +216,35 @@ class KeybindsPage(gtk.Box):
             css_classes=("page-box",),
             orientation=gtk.Orientation.VERTICAL
         )
-        self.scrollable = gtk.ScrolledWindow(
-            hscrollbar_policy=gtk.PolicyType.NEVER,
-            child=self.box,
-            vexpand=True
-        )
         super().__init__(
             css_classes=("keybinds-page", "settings-page",),
-            orientation=gtk.Orientation.VERTICAL,
+            child=self.box,
+            hscrollbar_policy=gtk.PolicyType.NEVER,
             vexpand=True
         )
-        self.box_children: list[RowTemplate | Category] = []
+        
         self.overrides: dict[str, dict[str, list[str] | None]] = {}
-
+        
+        # Créer les rows directement
         added_categories: list[str] = []
         for keybind in key_binds:
             if not isinstance(keybind, KeyBind):
                 continue
             if not keybind.description:
                 continue
-            category = keybind.category or "Uknown"
+            category = keybind.category or "Unknown"
             if category not in added_categories:
-                self.box_children.append(Category(category))
+                self.box.append(Category(category))
                 added_categories.append(category)
             row = KeybindRow(keybind, self.on_bind_text, self.on_action_text)
-            self.box_children.append(row)
-
-        for child in self.box_children:
-            self.box.append(child)
-
+            self.box.append(row)
+        
+        # Boutons Save/Cancel en bas
         self.actions_box = gtk.Box(
             css_classes=("actions-box",),
-            halign=gtk.Align.END
+            halign=gtk.Align.END,
+            margin_top=12,
+            margin_bottom=12
         )
         self.save_button = gtk.Button(
             css_classes=("filled",),
@@ -258,25 +256,21 @@ class KeybindsPage(gtk.Box):
             label="Cancel"
         )
 
-        self.button_handlers = {
-            self.cancel_button: self.cancel_button.connect(
-                "clicked", self.on_cancel
-            ),
-            self.save_button: self.save_button.connect(
-                "clicked", self.on_save
-            )
-        }
+        self.cancel_button.connect("clicked", self.on_cancel)
+        self.save_button.connect("clicked", self.on_save)
 
         self.actions_box.append(self.cancel_button)
         self.actions_box.append(self.save_button)
-        self.append(self.scrollable)
-        self.append(self.actions_box)
+        self.box.append(self.actions_box)
 
     def on_cancel(self, *args: t.Any) -> None:
         self.overrides.clear()
-        for child in self.box_children:
+        # Parcourir tous les KeybindRow dans la box
+        child = self.box.get_first_child()
+        while child:
             if isinstance(child, KeybindRow):
                 child.update()
+            child = child.get_next_sibling()
         self.save_button.set_sensitive(False)
 
     def on_save(self, *args: t.Any) -> None:
@@ -335,6 +329,412 @@ class KeybindsPage(gtk.Box):
         self.overrides[id]["action"] = action
         self.save_button.set_sensitive(True)
 
-    def destroy(self) -> None:
-        for child in self.box_children:
-            child.destroy()
+
+# Classes séparées pour chaque page de keybinds dans la sidebar
+
+class KeybindsByTypePage(gtk.ScrolledWindow):
+    """Page Keybinds organisée par type/catégorie"""
+    def __init__(self):
+        super().__init__(
+            hscrollbar_policy=gtk.PolicyType.NEVER,
+            css_classes=("settings-page",)
+        )
+        self.overrides: dict[str, dict[str, t.Any]] = {}
+        
+        self.box = gtk.Box(
+            css_classes=("page-box",),
+            orientation=gtk.Orientation.VERTICAL,
+            spacing=0
+        )
+        self.set_child(self.box)
+        
+        # Grouper par catégorie
+        categories_map: dict[str, list[KeyBind]] = {}
+        for keybind in key_binds:
+            if not isinstance(keybind, KeyBind) or not keybind.description:
+                continue
+            category = keybind.category or "Unknown"
+            if category not in categories_map:
+                categories_map[category] = []
+            categories_map[category].append(keybind)
+        
+        # Afficher par catégorie
+        for category, keybinds in sorted(categories_map.items()):
+            self.box.append(Category(category))
+            for keybind in keybinds:
+                row = KeybindRow(keybind, self.on_bind_text, self.on_action_text)
+                self.box.append(row)
+        
+        # Boutons Cancel/Save
+        self.actions_box = gtk.Box(
+            css_classes=("actions-box",),
+            orientation=gtk.Orientation.HORIZONTAL,
+            spacing=10,
+            halign=gtk.Align.END,
+            margin_top=10,
+            margin_bottom=10,
+            margin_start=10,
+            margin_end=10
+        )
+        
+        self.cancel_button = gtk.Button(
+            label="Cancel",
+            css_classes=("cancel-button",)
+        )
+        self.save_button = gtk.Button(
+            label="Save",
+            css_classes=("save-button",),
+            sensitive=False
+        )
+        
+        self.cancel_button.connect("clicked", self.on_cancel)
+        self.save_button.connect("clicked", self.on_save)
+        
+        self.actions_box.append(self.cancel_button)
+        self.actions_box.append(self.save_button)
+        self.box.append(self.actions_box)
+    
+    def on_cancel(self, *args: t.Any) -> None:
+        self.overrides.clear()
+        child = self.box.get_first_child()
+        while child:
+            if isinstance(child, KeybindRow):
+                child.update()
+            child = child.get_next_sibling()
+        self.save_button.set_sensitive(False)
+    
+    def on_save(self, *args: t.Any) -> None:
+        overrides: Ref[KeybindOverridesRaw] = Settings().get_ref("keybinds_overrides")
+        _map = {str(item["id"]): item for item in overrides.value}
+        for id, to_change in self.overrides.items():
+            if id not in _map:
+                _map[id] = overrides._wrap_if_mutable({"id": id})  # type: ignore
+                overrides.value.append(_map[id])
+            if "bind" in to_change:
+                if to_change["bind"] is None:
+                    if "bind" in _map[id]:
+                        del _map[id]["bind"]
+                else:
+                    _map[id]["bind"] = to_change["bind"]
+            if "action" in to_change:
+                if to_change["action"] is None:
+                    if "action" in _map[id]:
+                        del _map[id]["action"]
+                else:
+                    _map[id]["action"] = to_change["action"]
+        self.overrides.clear()
+        self.save_button.set_sensitive(False)
+    
+    def on_bind_text(self, row: KeybindRow, bind: list[str] | None) -> None:
+        id = row.keybind.id
+        if id not in self.overrides.keys():
+            self.overrides[id] = {}
+        self.overrides[id]["bind"] = bind
+        self.save_button.set_sensitive(True)
+    
+    def on_action_text(self, row: KeybindRow, action: list[str] | None) -> None:
+        id = row.keybind.id
+        if id not in self.overrides.keys():
+            self.overrides[id] = {}
+        self.overrides[id]["action"] = action
+        self.save_button.set_sensitive(True)
+
+
+class KeybindsKeyboardPage(gtk.ScrolledWindow):
+    """Page Keybinds clavier standard (SUPER+...)"""
+    def __init__(self):
+        super().__init__(
+            hscrollbar_policy=gtk.PolicyType.NEVER,
+            css_classes=("settings-page",)
+        )
+        self.overrides: dict[str, dict[str, t.Any]] = {}
+        
+        self.box = gtk.Box(
+            css_classes=("page-box",),
+            orientation=gtk.Orientation.VERTICAL,
+            spacing=0
+        )
+        self.set_child(self.box)
+        
+        self.box.append(Category("Clavier Standard"))
+        
+        for keybind in key_binds:
+            if not isinstance(keybind, KeyBind) or not keybind.description:
+                continue
+            # Filtrer: SUPER + non-XF86
+            if len(keybind.bind) > 1 and "super" in [b.lower() for b in keybind.bind]:
+                has_xf86 = any("xf86" in b.lower() for b in keybind.bind)
+                if not has_xf86:
+                    row = KeybindRow(keybind, self.on_bind_text, self.on_action_text)
+                    self.box.append(row)
+        
+        # Boutons Cancel/Save
+        self.actions_box = gtk.Box(
+            css_classes=("actions-box",),
+            orientation=gtk.Orientation.HORIZONTAL,
+            spacing=10,
+            halign=gtk.Align.END,
+            margin_top=10,
+            margin_bottom=10,
+            margin_start=10,
+            margin_end=10
+        )
+        
+        self.cancel_button = gtk.Button(label="Cancel", css_classes=("cancel-button",))
+        self.save_button = gtk.Button(label="Save", css_classes=("save-button",), sensitive=False)
+        
+        self.cancel_button.connect("clicked", self.on_cancel)
+        self.save_button.connect("clicked", self.on_save)
+        
+        self.actions_box.append(self.cancel_button)
+        self.actions_box.append(self.save_button)
+        self.box.append(self.actions_box)
+    
+    def on_cancel(self, *args: t.Any) -> None:
+        self.overrides.clear()
+        child = self.box.get_first_child()
+        while child:
+            if isinstance(child, KeybindRow):
+                child.update()
+            child = child.get_next_sibling()
+        self.save_button.set_sensitive(False)
+    
+    def on_save(self, *args: t.Any) -> None:
+        overrides: Ref[KeybindOverridesRaw] = Settings().get_ref("keybinds_overrides")
+        _map = {str(item["id"]): item for item in overrides.value}
+        for id, to_change in self.overrides.items():
+            if id not in _map:
+                _map[id] = overrides._wrap_if_mutable({"id": id})  # type: ignore
+                overrides.value.append(_map[id])
+            if "bind" in to_change:
+                if to_change["bind"] is None:
+                    if "bind" in _map[id]:
+                        del _map[id]["bind"]
+                else:
+                    _map[id]["bind"] = to_change["bind"]
+            if "action" in to_change:
+                if to_change["action"] is None:
+                    if "action" in _map[id]:
+                        del _map[id]["action"]
+                else:
+                    _map[id]["action"] = to_change["action"]
+        self.overrides.clear()
+        self.save_button.set_sensitive(False)
+    
+    def on_bind_text(self, row: KeybindRow, bind: list[str] | None) -> None:
+        id = row.keybind.id
+        if id not in self.overrides.keys():
+            self.overrides[id] = {}
+        self.overrides[id]["bind"] = bind
+        self.save_button.set_sensitive(True)
+    
+    def on_action_text(self, row: KeybindRow, action: list[str] | None) -> None:
+        id = row.keybind.id
+        if id not in self.overrides.keys():
+            self.overrides[id] = {}
+        self.overrides[id]["action"] = action
+        self.save_button.set_sensitive(True)
+
+
+class KeybindsThinkPadPage(gtk.ScrolledWindow):
+    """Page Keybinds ThinkPad T14 Gen 2"""
+    def __init__(self):
+        super().__init__(
+            hscrollbar_policy=gtk.PolicyType.NEVER,
+            css_classes=("settings-page",)
+        )
+        self.overrides: dict[str, dict[str, t.Any]] = {}
+        
+        self.box = gtk.Box(
+            css_classes=("page-box",),
+            orientation=gtk.Orientation.VERTICAL,
+            spacing=0
+        )
+        self.set_child(self.box)
+        
+        self.box.append(Category("ThinkPad T14 Gen 2 Fn Keys"))
+        
+        thinkpad_keys = [
+            "XF86AudioMute", "XF86AudioLowerVolume", "XF86AudioRaiseVolume",
+            "XF86AudioMicMute", "XF86MonBrightnessDown", "XF86MonBrightnessUp",
+            "XF86Display", "XF86WLAN", "XF86Tools", "XF86Search",
+            "XF86LaunchA", "XF86Explorer", "XF86Calculator", "XF86Favorites"
+        ]
+        
+        for keybind in key_binds:
+            if not isinstance(keybind, KeyBind) or not keybind.description:
+                continue
+            for key in thinkpad_keys:
+                if any(key.lower() in b.lower() for b in keybind.bind):
+                    row = KeybindRow(keybind, self.on_bind_text, self.on_action_text)
+                    self.box.append(row)
+                    break
+        
+        # Boutons Cancel/Save
+        self.actions_box = gtk.Box(
+            css_classes=("actions-box",),
+            orientation=gtk.Orientation.HORIZONTAL,
+            spacing=10,
+            halign=gtk.Align.END,
+            margin_top=10,
+            margin_bottom=10,
+            margin_start=10,
+            margin_end=10
+        )
+        
+        self.cancel_button = gtk.Button(label="Cancel", css_classes=("cancel-button",))
+        self.save_button = gtk.Button(label="Save", css_classes=("save-button",), sensitive=False)
+        
+        self.cancel_button.connect("clicked", self.on_cancel)
+        self.save_button.connect("clicked", self.on_save)
+        
+        self.actions_box.append(self.cancel_button)
+        self.actions_box.append(self.save_button)
+        self.box.append(self.actions_box)
+    
+    def on_cancel(self, *args: t.Any) -> None:
+        self.overrides.clear()
+        child = self.box.get_first_child()
+        while child:
+            if isinstance(child, KeybindRow):
+                child.update()
+            child = child.get_next_sibling()
+        self.save_button.set_sensitive(False)
+    
+    def on_save(self, *args: t.Any) -> None:
+        overrides: Ref[KeybindOverridesRaw] = Settings().get_ref("keybinds_overrides")
+        _map = {str(item["id"]): item for item in overrides.value}
+        for id, to_change in self.overrides.items():
+            if id not in _map:
+                _map[id] = overrides._wrap_if_mutable({"id": id})  # type: ignore
+                overrides.value.append(_map[id])
+            if "bind" in to_change:
+                if to_change["bind"] is None:
+                    if "bind" in _map[id]:
+                        del _map[id]["bind"]
+                else:
+                    _map[id]["bind"] = to_change["bind"]
+            if "action" in to_change:
+                if to_change["action"] is None:
+                    if "action" in _map[id]:
+                        del _map[id]["action"]
+                else:
+                    _map[id]["action"] = to_change["action"]
+        self.overrides.clear()
+        self.save_button.set_sensitive(False)
+    
+    def on_bind_text(self, row: KeybindRow, bind: list[str] | None) -> None:
+        id = row.keybind.id
+        if id not in self.overrides.keys():
+            self.overrides[id] = {}
+        self.overrides[id]["bind"] = bind
+        self.save_button.set_sensitive(True)
+    
+    def on_action_text(self, row: KeybindRow, action: list[str] | None) -> None:
+        id = row.keybind.id
+        if id not in self.overrides.keys():
+            self.overrides[id] = {}
+        self.overrides[id]["action"] = action
+        self.save_button.set_sensitive(True)
+
+
+class KeybindsKeychronPage(gtk.ScrolledWindow):
+    """Page Keybinds Keychron Q1 HE"""
+    def __init__(self):
+        super().__init__(
+            hscrollbar_policy=gtk.PolicyType.NEVER,
+            css_classes=("settings-page",)
+        )
+        self.overrides: dict[str, dict[str, t.Any]] = {}
+        
+        self.box = gtk.Box(
+            css_classes=("page-box",),
+            orientation=gtk.Orientation.VERTICAL,
+            spacing=0
+        )
+        self.set_child(self.box)
+        
+        self.box.append(Category("Keychron Q1 HE Fn Keys"))
+        
+        keychron_keys = [
+            "XF86AudioPlay", "XF86AudioPause", "XF86AudioPrev", "XF86AudioNext",
+            "XF86HomePage", "XF86Mail", "XF86Go", "XF86Back", "XF86Forward",
+            "XF86Refresh", "XF86Sleep", "XF86WakeUp"
+        ]
+        
+        for keybind in key_binds:
+            if not isinstance(keybind, KeyBind) or not keybind.description:
+                continue
+            for key in keychron_keys:
+                if any(key.lower() in b.lower() for b in keybind.bind):
+                    row = KeybindRow(keybind, self.on_bind_text, self.on_action_text)
+                    self.box.append(row)
+                    break
+        
+        # Boutons Cancel/Save
+        self.actions_box = gtk.Box(
+            css_classes=("actions-box",),
+            orientation=gtk.Orientation.HORIZONTAL,
+            spacing=10,
+            halign=gtk.Align.END,
+            margin_top=10,
+            margin_bottom=10,
+            margin_start=10,
+            margin_end=10
+        )
+        
+        self.cancel_button = gtk.Button(label="Cancel", css_classes=("cancel-button",))
+        self.save_button = gtk.Button(label="Save", css_classes=("save-button",), sensitive=False)
+        
+        self.cancel_button.connect("clicked", self.on_cancel)
+        self.save_button.connect("clicked", self.on_save)
+        
+        self.actions_box.append(self.cancel_button)
+        self.actions_box.append(self.save_button)
+        self.box.append(self.actions_box)
+    
+    def on_cancel(self, *args: t.Any) -> None:
+        self.overrides.clear()
+        child = self.box.get_first_child()
+        while child:
+            if isinstance(child, KeybindRow):
+                child.update()
+            child = child.get_next_sibling()
+        self.save_button.set_sensitive(False)
+    
+    def on_save(self, *args: t.Any) -> None:
+        overrides: Ref[KeybindOverridesRaw] = Settings().get_ref("keybinds_overrides")
+        _map = {str(item["id"]): item for item in overrides.value}
+        for id, to_change in self.overrides.items():
+            if id not in _map:
+                _map[id] = overrides._wrap_if_mutable({"id": id})  # type: ignore
+                overrides.value.append(_map[id])
+            if "bind" in to_change:
+                if to_change["bind"] is None:
+                    if "bind" in _map[id]:
+                        del _map[id]["bind"]
+                else:
+                    _map[id]["bind"] = to_change["bind"]
+            if "action" in to_change:
+                if to_change["action"] is None:
+                    if "action" in _map[id]:
+                        del _map[id]["action"]
+                else:
+                    _map[id]["action"] = to_change["action"]
+        self.overrides.clear()
+        self.save_button.set_sensitive(False)
+    
+    def on_bind_text(self, row: KeybindRow, bind: list[str] | None) -> None:
+        id = row.keybind.id
+        if id not in self.overrides.keys():
+            self.overrides[id] = {}
+        self.overrides[id]["bind"] = bind
+        self.save_button.set_sensitive(True)
+    
+    def on_action_text(self, row: KeybindRow, action: list[str] | None) -> None:
+        id = row.keybind.id
+        if id not in self.overrides.keys():
+            self.overrides[id] = {}
+        self.overrides[id]["action"] = action
+        self.save_button.set_sensitive(True)
+

@@ -64,9 +64,13 @@
     }
 
     .icon-box {
+      min-width: 48px;
+      
       icon {
         color: $primary;
         font-size: 32px;
+        min-width: 32px;
+        min-height: 32px;
       }
     }
 

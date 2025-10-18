@@ -33,7 +33,7 @@ class OutsideToolButton(gtk.Box):
             css_classes=("icon-box",),
             valign=gtk.Align.CENTER
         )
-        icon_widget = widget.Icon(icon, size=32)
+        icon_widget = widget.Icon(icon)
         icon_box.append(icon_widget)
         
         # Texte (titre + description)
@@ -95,6 +95,7 @@ class OutsideToolButton(gtk.Box):
     def on_launch(self, *args: t.Any) -> None:
         """Lance l'outil externe"""
         try:
+            # Lancer l'outil externe
             launch_detached(self.command)
             if __debug__:
                 logger.debug(f"Launched external tool: {' '.join(self.command)}")

@@ -11,6 +11,38 @@ window.keybinds {
     border: 0.0625rem solid $layerBorderColor;
     padding: 0.5rem;
     
+    .search-box {
+        background-color: $surfaceContainer;
+        border-radius: max(calc($hyprlandRounding - 0.5rem), 0.25rem);
+        padding: 0.75rem;
+        
+        .icon {
+            color: $onSurfaceVariant;
+            font-size: 1.25rem;
+            min-width: 1.25rem;
+            min-height: 1.25rem;
+        }
+        
+        searchentry {
+            background-color: $surface;
+            border-radius: 0.5rem;
+            border: 1px solid color.adjust($primary, $alpha: -0.8);
+            color: $onSurface;
+            padding: 0.5rem 1rem;
+            font-size: 0.95rem;
+            
+            &:focus {
+                border-color: $primary;
+                box-shadow: 0 0 0 0.125rem color.adjust($primary, $alpha: -0.7);
+            }
+            
+            text {
+                background-color: transparent;
+                color: $onSurface;
+            }
+        }
+    }
+    
     .keybinds-notebook {
         notebook > header {
             background-color: $surfaceContainer;

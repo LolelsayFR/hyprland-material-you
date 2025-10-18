@@ -8,6 +8,47 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 
 ---
 
+## [Non publié] - 2025-10-18
+
+### Ajouté
+- **Intégration Deezer améliorée** 🎵
+  - Chargement direct des pochettes depuis CDN Deezer (pas de cache local)
+  - Icône officielle Deezer dans le player au lieu du texte
+  - Mise à jour instantanée des pochettes lors des changements de piste
+  - Support dans la barre et le popup player
+  - Règles Hyprland (blur + opacity) pour Deezer
+  - Voir [DEEZER-INTEGRATION.md](DEEZER-INTEGRATION.md)
+
+- **Settings Keybinds refactorisé** ⌨️
+  - Conversion du système d'onglets (Notebook) en 5 pages séparées
+  - Nouvelle navigation dans la sidebar
+  - Pages : All, By Type, Keyboard, ThinkPad, Keychron
+  - Meilleure performance et expérience utilisateur
+  - Voir [KEYBINDS-LAYOUT-UPDATE.md](KEYBINDS-LAYOUT-UPDATE.md)
+
+- **Configuration GTK fonts**
+  - Ajout `gtk_font` et `gtk_font_size` dans config.py
+  - Interface de configuration dans Settings > GTK
+
+### Modifié
+- **Catégories Keybinds** : Fusion Workspaces → Windows
+- **Compatibilité GTK4** : `load_from_string()` au lieu de `load_from_data()` pour CSS
+- **Player widgets** : Détection automatique des changements de piste
+- **Règles Hyprland** : Ajout support complet Deezer (4 classes)
+
+### Corrigé
+- Pochettes d'album ne se mettant pas à jour dans Deezer
+- Cache local empêchant les mises à jour d'images
+- Compatibilité GTK4 pour CssProvider
+
+### Documentation
+- Ajout SESSION-SUMMARY.md : Récapitulatif complet de la session
+- Ajout DEEZER-INTEGRATION.md : Documentation technique intégration Deezer
+- Mise à jour KEYBINDS-LAYOUT-UPDATE.md
+- Nettoyage fichiers MD obsolètes
+
+---
+
 ## [Non publié] - 2025-10-17
 
 ### Ajouté

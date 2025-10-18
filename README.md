@@ -64,10 +64,10 @@ All artworks are property of DROELOE and are included here for aesthetic purpose
     <summary>Manual installation</summary>
 
 - Clone repository: `git clone --depth=1 https://github.com/koeqaife/hyprland-material-you.git`
-- Install all dependencies from depends.txt
+- Install all dependencies from `depends.txt`
 - Build Cython code by using `build.sh` in `hypryou/`
-- Then copy `hypryou` to `/usr/lib/hypryou` and copy `hypryou-assets` to `/usr/share/hypryou`
-- Then use `build.sh` in `build`
+- Then copy `hypryou/` to `/usr/lib/hypryou` and copy `hypryou-assets/` to `/usr/share/hypryou`
+- Then use `build.sh` in `build/`
 - Move `hypryouctl`, `hypryou-start`, `hypryou-crash-dialog` to `/usr/bin`
 - Copy `assets/hypryou.desktop` to `/usr/share/wayland-sessions/`
 - And run it as `HyprYou` from your display manager (Not `Hyprland`!!)
